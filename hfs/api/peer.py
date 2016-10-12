@@ -1,7 +1,7 @@
 import grpc
 from ..protos import api_pb2
 from ..constants import DEFAULT_PEER_GRPC_ADDR
-import logging
+from ..util.log import debug
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
 
 
@@ -12,7 +12,6 @@ class Peer(object):
     """
 
     def __init__(self, grpc_addr=DEFAULT_PEER_GRPC_ADDR):
-        self.logger = logging.getLogger(__name__)
         self.channel = grpc.insecure_channel(grpc_addr)
         self.peer_stub = api_pb2.OpenchainStub(self.channel)
 
@@ -52,7 +51,7 @@ class Peer(object):
         peer_response = self.peer_stub.GetPeers(
                         google_dot_protobuf_dot_empty__pb2.Empty())
         for peer_message in peer_response.peers:
-            self.logger.debug("peer information:--IDName:{0}--address:{1}--type:{2}\n".format(
+            debug("peer:IDName:{0}, address:{1}, type:{2}\n".format(
                    peer_message.ID.name,
                    peer_message.address,
                    peer_message.type))
