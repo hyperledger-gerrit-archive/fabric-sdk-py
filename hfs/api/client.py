@@ -13,56 +13,68 @@
 # limitations under the License.
 #
 
-import chain
 
-class Client(Object):
+class Client(object):
     """
         Main interaction handler with end user.
         Client can maintain several chains.
-    
     """
+
     def new_chain(self, chain_name):
-	"""Init a chain instance with given name.
-	    
-	:param chain_name: The name of chain
-	
-	:return: The inited chain instance
-	"""
+        """Init a chain instance with given name.
+
+        :param chain_name: The name of chain
+
+        :return: The inited chain instance
+        """
+
         pass
 
     def get_chain(self, chain_name):
         """ Get a chain instance
-        
+
         :param chain_name: the name of the chain
-        
+
         :return: Get the chain instance with the name or None
         """
         pass
 
-    def set_KeyValueStore(self, store):
-        """ Creates a new instance of a key value store to securely store user enrollment
-        materials. The SDK should make this pluggable so that different store
-        implementations can be selected by the application. For instance, in some cases
-        File-based stores a sufficient. But for clustering purposes, multiple application
-        instances want to share a store backed by a database.
+    def set_key_value_store(self, store):
+        """store user enrollment materials. The SDK should make this
+        pluggable so that different store implementations can be
+        selected by the application. For instance, in some cases
+        File-based stores a sufficient. But for clustering purposes,
+        multiple application instances want to share a store backed
+        by a database.
 
-        :param store: instance of an alternative KeyValueStore implementation provided by the consuming app 
-        
-        :return: None 
+        :param store: instance of an alternative KeyValueStore
+        implementation provided by the consuming app
+
+        :return: None
         """
 
         pass
 
     def set_logger(self, logger):
-        """Sets an instance of a logger used by the consuming application. This is useful because an application would likely want to use a common logger for all parts of the code. And typically an IT organization would have log scraping set up for monitoring and analytics purposes, such that a “standard” log format is desirable. The SDK should have a built-in logger so that developers get logging by default. But it MUST allow an external logger to be set with a standard set of logging APIs
+        """Sets an instance of a logger used by the consuming application.
+        This is useful because an application would likely want to use a
+        common logger for all parts of the code.
+        And typically an IT organization would have log scraping set up for
+        monitoring and analytics purposes, such that a “standard” log format
+        is desirable.
+        The SDK should have a built-in logger so that developers get logging by
+        default.
+        But it MUST allow an external logger to be set with a standard set of
+        logging APIs
 
-        :param logger: an external logging utility that implements a standard interface.
+        :param logger: an external logging utility that implements a standard
+        interface.
 
         :return: None
         """
         pass
-    
-    def Key_related_process(self, name):
+
+    def key_related_process(self, name):
         """TODO.
         store or change persistent and private data
         Params
@@ -72,6 +84,3 @@ class Client(Object):
 
         """
         pass
-    
-        
-
