@@ -1,8 +1,23 @@
-import grpc
-from ..protos import api_pb2
+# Copyright IBM Corp. 2016 All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# import grpc
 from ..constants import DEFAULT_PEER_GRPC_ADDR
 import logging
 from google.protobuf import empty_pb2 as google_dot_protobuf_dot_empty__pb2
+from connection import get_connection
 
 
 class Peer(object):
@@ -13,8 +28,8 @@ class Peer(object):
 
     def __init__(self, grpc_addr=DEFAULT_PEER_GRPC_ADDR):
         self.logger = logging.getLogger(__name__)
-        self.channel = grpc.insecure_channel(grpc_addr)
-        self.peer_stub = api_pb2.OpenchainStub(self.channel)
+        self.connection = get_connection(grpc_addr)
+        self.connection.connect()
 
     def peer_list(self):
         """list peer on the chain
@@ -49,7 +64,7 @@ class Peer(object):
             :return:The peer list on the chain
             """
 
-        peer_response = self.peer_stub.GetPeers(
+        peer_response = self.connection.stub.GetPeers(
                 google_dot_protobuf_dot_empty__pb2.Empty())
         for peer_message in peer_response.peers:
             self.logger.debug("peer information:"
