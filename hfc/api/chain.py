@@ -23,6 +23,46 @@ class Chain(object):
 
     def __init__(self):
         self.peers = []
+        self.keyValStore = None
+        self.tcertBatchSize = 0
+
+    def getKeyValueStore(self):
+        """
+            Get the key val store implementation (if any)
+            that is currently associated with this chain
+
+            Returns:
+                the current KeyValueStore associated with this chain,
+                or None if not set.
+        """
+        return self.keyValStore
+
+    def setKeyValueStore(self, keyValStore):
+        """
+            Set the key value store implementation
+
+            Args:
+                keyValStore (KeyValueStore): a KeyValueStore instance
+        """
+        self.keyValStore = keyValStore
+
+    def getTCertBatchSize(self):
+        """
+            Get the tcert batch size
+
+            Returns:
+                the current tcert batch size
+        """
+        return self.tcertBatchSize
+
+    def setTCertBatchSize(self, batchSize):
+        """
+            Set the tcert batch size
+
+            Args:
+                batchSize (integer): tcert batch size
+        """
+        self.tcertBatchSize = batchSize
 
     def add_peer(self, peer):
         """

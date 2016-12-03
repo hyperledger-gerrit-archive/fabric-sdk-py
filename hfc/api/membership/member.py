@@ -21,27 +21,49 @@ class Member(object):
     Types of members include end users, peers, etc.
     """
 
-    def __init__(self, chain, kwargs):
+    def __init__(self, chain, **kwargs):
         """Constructor for a member.
 
         :param chain: the chain instance that the member belong to
-        :param kwargs: includes name=,roles=,acount=,affiliation= ...
+        :param kwargs: includes name=,roles=,affiliation= ...
         """
-        pass
+        self.name = ''
+        self.roles = []
+        self.affiliation = ''
+
+        if 'name' in kwargs:
+            self.name = kwargs['name']
+        elif 'enrollmentID' in kwargs:
+            self.name = kwargs['enrollmentID']
+        if 'roles' in kwargs:
+            self.roles = kwargs['roles']
+        else:
+            self.roles = ['fabric.user']
+        if 'affiliation' in kwargs:
+            self.affiliation = kwargs['affiliation']
+
+        self.chain = chain
+        self.keyValStore = chain.getKeyValueStore()
+        self.keyValStoreName = toKeyValueStoreName(self.name)
+        self.tcertBatchSize = chain.getTCertBatchSize()
+
+        self.enrollmentSecret = ''
+        self.enrollment = None
+        self.certGetterMap = {}
 
     def get_name(self):
         """Get the member name.
 
         :return: The member name
         """
-        pass
+        return self.name
 
     def get_chain(self):
         """Get the chain.
 
         :return: The chain instance
         """
-        pass
+        return self.chain
 
     def get_member_services(self):
         """Get the member services.
@@ -55,49 +77,42 @@ class Member(object):
 
         :return: The roles.
         """
-        pass
+        return self.roles
 
     def set_roles(self, roles):
         """Set the roles.
 
         :param roles: The roles.
         """
-        pass
-
-    def get_account(self):
-        """Get the account
-
-        :return: The account
-        """
-        pass
-
-    def set_account(self, account):
-        """Set the account
-
-        :param account: The account
-        """
-        pass
+        self.roles = roles
 
     def get_affiliation(self):
         """Get the affiliation
 
         :return: The affiliation
         """
-        pass
+        return self.affiliation
 
     def set_affiliation(self, affiliation):
         """Set the affiliation
 
         :param affiliation: The affiliation
         """
-        pass
+        self.affiliation = affiliation
 
     def get_enrollment(self):
         """Get the enrollment info.
 
         :return: The enrollment info
         """
-        pass
+        return self.enrollment
+
+    def set_enrollment(self, enrollment):
+        """Set the enrollment info.
+
+        :param enrollment: the enrollment instance
+        """
+        self.enrollment = enrollment
 
     def is_registered(self):
         """Determine if this member name has been registered.
@@ -184,3 +199,7 @@ class Member(object):
         :param json_str: The state of this member as a json string
         """
         pass
+
+
+def toKeyValueStoreName(name):
+    return 'member.' + name
