@@ -13,10 +13,11 @@
 # limitations under the License.
 #
 import base64
-import json
+import logging
 
 import requests
-import rx
+
+_logger = logging.getLogger(__name__)
 
 
 class COPClient(object):
@@ -26,8 +27,8 @@ class COPClient(object):
         """ Init COP client.
 
         Args:
-            target: COP server address including protocol,hostname,port
-            ca_certs_path: Local ca certs path
+            target (str): COP server address including protocol,hostname,port
+            ca_certs_path (str): Local ca certs path
         """
         self._ca_certs_path = ca_certs_path
         self._base_url = target + "/api/v1/cfssl/"
@@ -36,46 +37,33 @@ class COPClient(object):
         """Enroll a registered user in order to receive a signed X509 certificate
 
         Args:
-            enrollment_id: The registered ID to use for enrollment
-            enrollment_secret: The secret associated with the enrollment ID
-            csr: PEM-encoded PKCS#10 certificate signing request
-
-        Returns:
-            A rx.Observable object of belows
-                success:
-                    PEM-encoded X509 certificate
-                failed:
-                    HTTPError: Http invoke exception
-                    ValueError: Failed response, json parse error, args missing
-
-        """
-        if not enrollment_id or not enrollment_secret or not csr:
-            rx.Observable.just(ValueError(
-                    "Missing required parameters. "
-                    "'enrollmentID', 'enrollmentSecret' and 'csr' are all required."))
-
-        rx.Observable.start(lambda: self._enroll_callable(enrollment_id, enrollment_secret, csr))
-
-    def _enroll_callable(self, enrollment_id, enrollment_secret, csr):
-        """Actual enrollment action.
-
-        Args:
-            enrollment_id: The registered ID to use for enrollment
-            enrollment_secret: The secret associated with the enrollment ID
-            csr: PEM-encoded PKCS#10 certificate signing request
+            enrollment_id (str): The registered ID to use for enrollment
+            enrollment_secret (str): The secret associated with the
+                                     enrollment ID
+            csr (bytes or file-like object): PEM-encoded PKCS#10 certificate
+                                             signing request
 
         Returns: PEM-encoded X509 certificate
 
         Raises:
-            HTTPError: Http invoke exception
+            RequestException: errors in requests.exceptions
             ValueError: Failed response, json parse error, args missing
+
         """
+        if not enrollment_id or not enrollment_secret or not csr:
+            raise ValueError("Missing required parameters. "
+                             "'enrollmentID', 'enrollmentSecret' and 'csr'"
+                             " are all required.")
+
         response = requests.post(self._base_url + "enroll", data=csr,
                                  auth=(enrollment_id, enrollment_secret),
                                  verify=self._ca_certs_path)
 
-        enrollment_response = json.loads(response.json())
-        if enrollment_response.success:
-            return base64.b64decode(enrollment_response.result)
+        enrollment_response = response.json()
+        _logger.debug("Raw response json {0}".format(enrollment_response))
+
+        if enrollment_response['success']:
+            return base64.b64decode(enrollment_response['result'])
         else:
-            raise ValueError("Enrollment failed with errors {0}".format(enrollment_response.errors))
+            raise ValueError("Enrollment failed with errors {0}"
+                             .format(enrollment_response['errors']))
