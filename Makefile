@@ -9,7 +9,7 @@ define run-py-tox
 endef
 
 # Run all test cases, and should be triggered by the ci
-check: pylint py27 py30 py35 flake8
+check: shutdown_env start_env pylint py27 py30 py35 flake8 shutdown_env
 
 pylint:
 	$(call run-py-tox)
@@ -25,6 +25,16 @@ py35:
 
 flake8:
 	$(call run-py-tox)
+
+# Start test environment
+.PHONY: start_env
+start_env:
+	docker-compose -f test/docker-compose-test.yml up -d; sleep 20
+
+# Shutdown test environment
+.PHONY: shutdown_env
+shutdown_env:
+	docker-compose -f test/docker-compose-test.yml down
 
 # Generate the hyperledger/fabric-sdk-py image
 .PHONY: image
