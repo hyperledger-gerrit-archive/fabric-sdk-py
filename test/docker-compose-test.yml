@@ -1,0 +1,38 @@
+# This compose file will start a peer node, an orderer,
+# a cop server and an sdk environment for testing
+
+version: '2'
+
+services:
+  orderer:
+    container_name: fabric-orderer
+    image: tcz001/hyperledger-fabric-orderer
+    ports:
+      - "7050"
+    command: orderer
+
+  peer:
+    container_name: fabric-peer
+    image: tcz001/hyperledger-fabric-peer
+    environment:
+      - CORE_PEER_ADDRESSAUTODETECT=true
+      - CORE_LOGGING_LEVEL=DEBUG
+      - CORE_PEER_ID=vp0
+      - CORE_PEER_COMMITTER_LEDGER_ORDERER=orderer:7050
+    ports:
+      - "7051"
+      - "7052"
+      - "7053"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - orderer
+    command: peer node start
+
+  cop:
+    container_name: fabric-cop
+    image: tcz001/hyperledger-fabric-cop
+    command: /go/src/github.com/hyperledger/fabric-cop/bin/cop server start -ca testdata/ec.pem -ca-key testdata/ec-key.pem -config testdata/testconfig.json
+#    command: cop server start -ca testdata/ec.pem -ca-key testdata/ec-key.pem -config testdata/testconfig.json
+    ports:
+      - "8888"
