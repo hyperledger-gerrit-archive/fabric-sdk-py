@@ -1,0 +1,48 @@
+# This compose file will start a peer node, an orderer,
+# and a cop server environment for testing
+
+orderer:
+  container_name: fabric-orderer
+  image: hyperledger/fabric-order
+  expose:
+    - "7050"
+  command: orderer
+
+peer:
+  container_name: fabric-peer
+  image: hyperledger/fabric-peer
+  environment:
+    - CORE_PEER_ADDRESSAUTODETECT=true
+    - CORE_LOGGING_LEVEL=DEBUG
+    - CORE_PEER_ID=vp0
+    - CORE_PEER_COMMITTER_LEDGER_ORDERER=orderer:7050
+  expose:
+    - "7051"
+    - "7052"
+    - "7053"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+  links:
+    - orderer
+  command: peer node start
+
+cop:
+  container_name: fabric-cop
+  image: hyperledger/fabric-cop
+  command: /go/src/github.com/hyperledger/fabric-cop/bin/cop server start -ca testdata/ec.pem -ca-key testdata/ec-key.pem -config testdata/testconfig.json
+#    command: cop server start -ca testdata/ec.pem -ca-key testdata/ec-key.pem -config testdata/testconfig.json
+  expose:
+    - "8888"
+
+sdk-py:
+  container_name: fabric-sdk-py
+  build: ../
+  environment:
+    - ORDERER_ADDR=orderer:7050
+    - PEER_ADDR=peer:7051
+    - COP_ADDR=cop:8888
+  links:
+    - orderer
+    - peer
+    - cop
+  command: sh -c "sleep 20; make test"
