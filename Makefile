@@ -8,8 +8,12 @@ define run-py-tox
 	# set +o pipefail
 endef
 
-# Run all test cases, and should be triggered by the ci
-check: pylint py27 py30 py35 flake8
+# Triggered by the ci
+check: image
+	bash check.sh
+
+# Run all test cases
+test: pylint py27 py30 py35 flake8
 
 pylint:
 	$(call run-py-tox)
