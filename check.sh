@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 # checking local version
 echo "===Checking Docker and Docker-Compose version"
 docker version
