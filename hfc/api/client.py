@@ -13,6 +13,9 @@
 # limitations under the License.
 #
 
+import logging
+
+from .chain import Chain
 
 class Client(object):
     """
@@ -20,15 +23,22 @@ class Client(object):
         Client can maintain several chains.
     """
 
-    def new_chain(self, chain_name):
+    def __init__(self):
+        self.chains = {}
+        self.states = {}
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Init Client')
+
+    def new_chain(self, name):
         """Init a chain instance with given name.
 
-        :param chain_name: The name of chain
+        :param name: The name of chain
 
         :return: The inited chain instance
         """
-
-        pass
+        if name not in self.chains:
+            self.chains[name] = Chain(name)
+        return self.chains[name]
 
     def get_chain(self, chain_name):
         """ Get a chain instance

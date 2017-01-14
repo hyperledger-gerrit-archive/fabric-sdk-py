@@ -13,6 +13,11 @@
 # limitations under the License.
 #
 
+import logging
+import os
+
+from .crypto import crypto
+from ..constants import dockerfile_contents
 
 class Chain(object):
     """ The Chain Object
@@ -22,10 +27,14 @@ class Chain(object):
     on channel.
     """
 
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.peers = []
+        self.orders = []
         self.keyValStore = None
         self.tcertBatchSize = 0
+        self.logger = logging.getLogger(__name__)
+        self.logger.info('Init Chain with name={}'.format(self.name))
 
     def getKeyValueStore(self):
         """Get the key val store instance
@@ -170,7 +179,35 @@ class Chain(object):
         """
         pass
 
+    def package_chaincode(self, chaincode_path, chaincode_name,
+                          dockerfile_contents=dockerfile_contents):
+        """ Package all chaincode env into a tar.gz file
+        Args:
+            chaincode_path: path to the chaincode
+            chaincode_name: name of the chaincode
+            dockerfile_contents: docker file content
+
+        Returns: Bool
+        """
+        self.logger.debug('Packaging chaincode path={}'.format(chaincode_path))
+        go_path = os.environ['GOPATH']
+        if not go_path:
+            self.logger.warning('No GOPATH env variable is found')
+            return False
+        proj_path = go_path + '/src/' + chaincode_path
+        self.logger.debug('Project path={}'.format(proj_path))
+        dockerfile_contents = dockerfile_contents.format(chaincode_name)
+        docker_file_path = proj_path + '/Dockerfile'
+        try:
+            with open(docker_file_path) as f:
+                f.write(dockerfile_contents)
+        except:
+            return False
+        return True
+
     def create_deploy_proposal(self, chaincode_path, chaincode_name, fcn, args,
+                               chain_id, tx_id,
+                               nonce=crypto.generate_nonce(24),
                                sign=True):
         """Create a chaincode deploy proposal
 
@@ -181,17 +218,31 @@ class Chain(object):
         Args:
             chaincode_path (string): path to the chaincode to deploy
             chaincode_name (string): a custom name to identify the chaincode
-            on the chain
+                on the chain
             fcn (string): name of the chaincode function to call after deploy
-            to initiate the state
+                to initiate the state
             args (string[]): arguments for calling the init function
-            designated by “fcn”
+                designated by “fcn”
+            chain_id (string): id of chain to send, to support multiple chain
+            tx_id (string): Transaction id
             sign (Bool): Whether to sign the transaction, default to True
 
         Returns: (Proposal): The created Proposal instance or None.
 
         """
+        self.logger.debug('Create deploy proposal with chaincode={}'.format(
+            chaincode_name))
+        if not self.package_chaincode(chaincode_path, chaincode_name):
+            self.logger.warning('Fail to package chaincode')
+            return None
         return None
+
+    def send_deploy_proposal(self):
+        # TODO: will fillup this function later
+        if len(self.peers) < 1:
+            self.logger.warning('No peer to send deploy proposal')
+            return False
+        return True
 
     def create_transaction_proposal(self, chaincode_name, args, sign=True):
         """Create a transaction proposal.
