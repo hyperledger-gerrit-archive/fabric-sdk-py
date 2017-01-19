@@ -1,0 +1,10 @@
+Code-Review+2: Kai Chen <281165273@qq.com>
+Verified+1: Kai Chen <281165273@qq.com>
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+1: David Geng <david@esse.io>
+Code-Review+2: Baohua Yang <yangbaohua@gmail.com>
+Submitted-by: Baohua Yang <yangbaohua@gmail.com>
+Submitted-at: Thu, 19 Jan 2017 13:21:52 +0000
+Reviewed-on: http://gerrit.hyperledger.org/r/4553
+Project: fabric-sdk-py
+Branch: refs/heads/master
