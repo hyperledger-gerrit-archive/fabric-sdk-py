@@ -47,6 +47,59 @@ IV_LENGTH = 16
 
 
 @six.add_metaclass(ABCMeta)
+class Key(object):
+    """ An abstract base class for Key.
+
+    Key represents a base cryptographic key. It can be symmetric or asymmetric.
+    In asymmetric case, the private key can retrieve public key with the
+    corresponding method.
+
+    A key can be referenced via the Subject Key Identifier (SKI) with DER or
+    PEM encoding.
+    """
+
+    @abstractmethod
+    def is_symmetric(self):
+        """ Return if this key is with symmetric crypt, i.e. whether it's a
+        symmetric key.
+
+        :return: True or False
+        """
+
+    @abstractmethod
+    def get_SKI(self):
+        """ Return the SKI string
+
+        :return: string represent the SKI
+        """
+
+
+@six.add_metaclass(ABCMeta)
+class AsymmetricKey(Key):
+    """ An asymmetric key.
+
+    Can be a public key or private key, the private key can retrieve public
+    key with the corresponding method.
+    """
+
+    @abstractmethod
+    def is_private(self):
+        """ Return if this key is private key
+
+        :return: True or False
+        """
+
+    @abstractmethod
+    def get_public_key(self):
+        """ Get the corresponding public key for this private key.
+
+        If this key is already a public one, then return itself.
+
+        :return: Public key
+        """
+
+
+@six.add_metaclass(ABCMeta)
 class Crypto(object):
     """ An abstract base class for crypto. """
 
