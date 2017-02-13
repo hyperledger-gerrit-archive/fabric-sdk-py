@@ -73,7 +73,7 @@ class FileKeyValueStore(KeyValueStore):
         :return:
         """
         self.path = path
-        self._make_dir(path)
+        self.make_dir(path)
 
     def set_value(self, key, value):
         """Set a value with a specific key.
@@ -124,7 +124,7 @@ class FileKeyValueStore(KeyValueStore):
                                    scheduler)
 
     @staticmethod
-    def _make_dir(path):
+    def make_dir(path):
         try:
             os.makedirs(path)
         except OSError:
