@@ -23,16 +23,17 @@ from ..protos.common import common_pb2 as common_proto
 from ..protos.peer import chaincode_pb2 as chaincode_proto
 from ..protos.peer import proposal_pb2
 from ..util import utils
-from ..util.constants import dockerfile_contents
+
+_logger = logging.getLogger(__name__ + ".chain")
 
 
 class ChaincodeDeploymentRequest(object):
     """Chaincode deployment request object."""
 
-    def __init__(self, chaincode_path, chaincode_id, fcn, args,
-                 chain_id, tx_id,
-                 nonce=crypto.generate_nonce(24),
-                 signer=None):
+    def __init__(self, chaincode_path, chaincode_id,
+                 fcn, chain_id, tx_id,
+                 args=None, nonce=crypto.generate_nonce(24),
+                 signing_identity=None):
         """Init chaincode deployment request.
 
         Args:
@@ -43,17 +44,17 @@ class ChaincodeDeploymentRequest(object):
             chain_id: chain id
             tx_id: tx id
             nonce: nonce
-            signer: signer
-
+            signing_identity: signing identity
         """
+        if args is None:
+            self._args = []
         self._chaincode_path = chaincode_path
         self._chaincode_id = chaincode_id
         self._fcn = fcn
-        self._args = args
         self._chain_id = chain_id
         self._tx_id = tx_id
         self._nonce = nonce
-        self._signer = signer
+        self._signing_identity = signing_identity
 
     @property
     def chaincode_path(self):
@@ -83,13 +84,13 @@ class ChaincodeDeploymentRequest(object):
         return self._chaincode_id
 
     @chaincode_id.setter
-    def chaincode_id(self, id):
+    def chaincode_id(self, chaincode_id):
         """Set chaincode id.
 
         Args: Set chaincode id
 
         """
-        self._chaincode_id = id
+        self._chaincode_id = chaincode_id
 
     @property
     def fcn(self):
@@ -182,22 +183,22 @@ class ChaincodeDeploymentRequest(object):
         self._nonce = nonce
 
     @property
-    def signer(self):
-        """Get signer.
+    def signing_identity(self):
+        """Get signingIdentity.
 
-        Returns: signer
-
-        """
-        return self._signer
-
-    @signer.setter
-    def signer(self, signer):
-        """Set signer.
-
-        Args: Set signer
+        Returns: signingIdentity
 
         """
-        self._signer = signer
+        return self._signing_identity
+
+    @signing_identity.setter
+    def signing_identity(self, signing_identity):
+        """Set signingIdentity.
+
+        Args: Set signingIdentity
+
+        """
+        self._signing_identity = signing_identity
 
 
 class Chain(object):
@@ -208,54 +209,68 @@ class Chain(object):
     on channel.
     """
 
-    def __init__(self, name):
-        self.name = name
-        self.peers = {}
-        self.orders = {}
-        self.keyValStore = None
-        self.tcertBatchSize = 0
-        self.logger = logging.getLogger(__name__)
-        self.logger.info('Init Chain with name={}'.format(self.name))
+    def __init__(self, name, peers=None, orderers=None, key_value_store=None,
+                 tcert_batch_size=0):
+        """
 
-    def getKeyValueStore(self):
+        Args:
+            name: Chain unique name
+            peers: Peer set
+            orderers: Orderer set
+            key_value_store: A KeyValueStore instance
+            tcert_batch_size: Tcert batch size
+        """
+        if orderers is None:
+            self._orderers = {}
+        if peers is None:
+            self._peers = {}
+        self._name = name
+        self._key_value_store = key_value_store
+        self._tcert_batch_size = tcert_batch_size
+
+    @property
+    def key_value_store(self):
         """Get the key val store instance
 
         Get the KeyValueStore implementation (if any)
         that is currently associated with this chain
 
-        :return: the current KeyValueStore associated with this chain,
+        Returns: the current KeyValueStore associated with this chain,
             or None if not set.
         """
-        return self.keyValStore
+        return self._key_value_store
 
-    def set_kv_store(self, keyValStore):
+    @key_value_store.setter
+    def key_value_store(self, key_value_store):
         """Set the key value store implementation
 
-        :param keyValStore: a KeyValueStore instance
+        :param key_value_store: a KeyValueStore instance
         """
-        self.keyValStore = keyValStore
+        self.key_value_store = key_value_store
 
-    def getTCertBatchSize(self):
+    @property
+    def tcert_batch_size(self):
         """Get the tcert batch size
 
         :return: the current tcert batch size
         """
-        return self.tcertBatchSize
+        return self._tcert_batch_size
 
-    def setTCertBatchSize(self, batchSize):
+    @tcert_batch_size.setter
+    def tcert_batch_size(self, tcert_batch_size):
         """Set the tcert batch size
 
-        :param batchSize: tcert batch size (integer)
+        :param tcert_batch_size: tcert batch size (integer)
         """
-        self.tcertBatchSize = batchSize
+        self._tcert_batch_size = tcert_batch_size
 
     def add_peer(self, peer):
         """Add peer endpoint to a chain object
 
         :param peer: an instance of the Peer class
         """
-        if peer.endpoint not in self.peers:
-            self.peers[peer.endpoint] = peer
+        if peer.endpoint not in self._peers:
+            self._peers[peer.endpoint] = peer
 
     def remove_peer(self, endpoint):
         """Remove peer endpoint from a chain object
@@ -263,15 +278,15 @@ class Chain(object):
         Args:
             endpoint(string): grpc address of the peer to remove
         """
-        if endpoint in self.peers:
-            self.peers.pop(endpoint, None)
+        if endpoint in self._peers:
+            self._peers.pop(endpoint, None)
 
     def get_peers(self):
         """Get peers of a chain.
 
         :return: The peer list on the chain
         """
-        return self.peers
+        return self._peers
 
     def add_orderer(self, orderer):
         """Add orderer endpoint to a chain object.
@@ -283,21 +298,23 @@ class Chain(object):
         APIs concerning the orderer will broadcast to all orderers
         simultaneously.
 
-        :param orderer: an instance of the Orderer class
+        Args:
+             orderer: an instance of the Orderer class
         """
         pass
 
     def remove_orderer(self, orderer):
         """Remove orderer endpoint from a chain object.
 
-        :param orderer: an instance of the Orderer class
+        Args:
+            orderer: an instance of the Orderer class
         """
         pass
 
     def get_orderers(self):
         """Get orderers of a chain.
 
-        :return: The orderer list on the chain
+        Returns: The orderer list on the chain
         """
         pass
 
@@ -333,7 +350,7 @@ class Chain(object):
         (transactions and state_store) can be queried but no new transactions
         can be submitted.
 
-        :return: True if the chain is read-only, False otherwise.
+        Returns: True if the chain is read-only, False otherwise.
         """
         pass
 
@@ -343,7 +360,7 @@ class Chain(object):
         Queries for various useful information on the state of the Chain
         (height, known peers).
 
-        :return: :class:`ChainInfo` chaininfo with height,
+        Returns: :class:`ChainInfo` chaininfo with height,
             currently the only useful information.
         """
         pass
@@ -351,50 +368,19 @@ class Chain(object):
     def query_block(self):
         """Queries the ledger for Block by block number.
 
-        :return: block number (long).
+        Returns: block number (long).
         """
         pass
 
     def query_transaction(self, transactionID):
         """Queries the ledger for Transaction by transaction ID.
 
-        :param transactionID: transaction ID (string)
-        :return: TransactionInfo containing the transaction
+        Args:
+            transactionID: transaction ID (string)
+
+        Returns: TransactionInfo containing the transaction
         """
         pass
-
-    def package_chaincode(self, chaincode_path, chaincode_name,
-                          dockerfile_contents=dockerfile_contents):
-        """ Package all chaincode env into a tar.gz file
-        Args:
-            chaincode_path: path to the chaincode
-            chaincode_name: name of the chaincode
-            dockerfile_contents: docker file content
-
-        Returns: The chaincode pkg path or None
-        """
-        self.logger.debug('Packaging chaincode path={}'.format(chaincode_path))
-        go_path = os.environ['GOPATH']
-        if not go_path:
-            self.logger.warning('No GOPATH env variable is found')
-            return None
-        proj_path = go_path + '/src/' + chaincode_path
-        self.logger.debug('Project path={}'.format(proj_path))
-        dockerfile_contents = dockerfile_contents.format(chaincode_name)
-        docker_file_path = proj_path + '/Dockerfile'
-        try:
-            with open(docker_file_path, 'w') as f:
-                f.write(dockerfile_contents)
-            # TODO: the file should be some tmp file in future
-            tz_file_path = '/tmp/deployment-package.tar.gz'
-            if not utils.create_targz(proj_path, tz_file_path):
-                self.logger.error('Error to create tar.gz file for {}'.format(
-                    proj_path))
-                return None
-        except Exception as e:
-            self.logger.error('Exception to package chaincode: {}'.format(e))
-            return None
-        return tz_file_path
 
     @staticmethod
     def _build_header(creator, chain_id, chaincode_name, tx_id, nonce):
@@ -473,7 +459,7 @@ class Chain(object):
         # proposal_bytes = json.dumps(proposal)
         return None
 
-    def create_deploy_proposal(self, chaincode_path, chaincode_name, fcn, args,
+    def create_deploy_proposal(self, chaincode_path, chaincode_id, fcn, args,
                                chain_id, tx_id,
                                nonce=crypto.generate_nonce(24),
                                sign=True):
@@ -485,7 +471,7 @@ class Chain(object):
 
         Args:
             chaincode_path (string): path to the chaincode to deploy
-            chaincode_name (string): a custom name to identify the chaincode
+            chaincode_id (string): a custom name to identify the chaincode
                 on the chain
             fcn (string): name of the chaincode function to call after deploy
                 to initiate the state
@@ -499,11 +485,11 @@ class Chain(object):
         Returns: (Proposal): The created Proposal instance or None.
 
         """
-        self.logger.debug('Create deploy proposal with chaincode={}'.format(
-            chaincode_name))
+        _logger.debug('Create deploy proposal with chaincode={}'.format(
+            chaincode_id))
 
         # step 0: construct a chaincode package
-        tz_file_path = self.package_chaincode(chaincode_path, chaincode_name)
+        tz_file_path = package_chaincode(chaincode_path, chaincode_id)
         if not tz_file_path:
             self.logger.error('Fail to package chaincode')
             return None
@@ -516,7 +502,7 @@ class Chain(object):
         assert not cc_deployment_spec.HasField('chaincodeSpec')
         cc_deployment_spec.chaincodeSpec.type = \
             chaincode_proto.ChaincodeSpec.Type.Value('GOLANG')
-        cc_deployment_spec.chaincodeSpec.chaincodeID.name = chaincode_name
+        cc_deployment_spec.chaincodeSpec.chaincodeID.name = chaincode_id
         cc_deployment_spec.chaincodeSpec.chaincodeID.path = chaincode_path
         cc_deployment_spec.chaincodeSpec.input.args.extend(
             list(map(lambda x: x.encode(), args_str)))
@@ -557,16 +543,16 @@ class Chain(object):
         Returns: An rx.Observable of deployment result
 
         """
-        if len(self.peers) < 1:
+        if len(self._peers) < 1:
             self.logger.warning('Missing peer objects'
                                 ' in Deployment proposal chain')
             return rx.Observable.just(ValueError(
                 "Missing peer objects in Deployment proposal chain"))
 
         # TODO:
-        # rx.Observable.just(chaincode_deployment_request) \
-        #     .filter(_check_chaincode_deployment_request)\
-        #     .map()
+        rx.Observable.just(chaincode_deployment_request) \
+            .map(_check_chaincode_deployment_request) \
+            .map()
 
         return True
 
@@ -642,12 +628,15 @@ class Chain(object):
 
 
 def _check_chaincode_deployment_request(chaincode_deployment_request):
-    """Check chaincode_deployment_request
+    """Check chaincode_deployment_request.
 
     Args:
         chaincode_deployment_request: see ChaincodeDeploymentRequest
 
-    Returns: Tuple of (boolean, error message)
+    Returns: chaincode_deployment_request if no error
+
+    Raises:
+            ValueError: Invalid chaincode_deployment_request
 
     """
     if not chaincode_deployment_request:
@@ -668,4 +657,41 @@ def _check_chaincode_deployment_request(chaincode_deployment_request):
     if not chaincode_deployment_request.signer:
         raise ValueError("Missing 'signer' parameter in the proposal request")
 
-    return True
+    return chaincode_deployment_request
+
+
+def package_chaincode(chaincode_path, chaincode_id):
+    """ Package all chaincode env into a tar.gz file
+    Args:
+        chaincode_path: path to the chaincode
+        chaincode_id: name of the chaincode
+        dockerfile_content: docker file content
+
+    Returns: The chaincode pkg path or None
+    """
+    _logger.debug('Packaging chaincode path={}'.format(chaincode_path))
+    go_path = os.environ['GOPATH']
+    if not chaincode_path:
+        _logger.error("Missing chaincodePath parameter "
+                      "in Deployment proposal request")
+        raise ValueError("Missing chaincodePath parameter "
+                         "in Deployment proposal request")
+
+    if not go_path:
+        _logger.error('No GOPATH env variable is found')
+        raise ValueError("No GOPATH env variable is found")
+
+    proj_path = go_path + '/src/' + chaincode_path
+    _logger.debug('Project path={}'.format(proj_path))
+
+    try:
+        # TODO: the file should be some tmp file in future
+        tz_file_path = '/tmp/deployment-package.tar.gz'
+        if not utils.create_targz(proj_path, tz_file_path):
+            _logger.error('Error to create tar.gz file for {}'.format(
+                proj_path))
+            return None
+    except Exception as e:
+        _logger.error('Exception to package chaincode: {}'.format(e))
+        return None
+    return tz_file_path

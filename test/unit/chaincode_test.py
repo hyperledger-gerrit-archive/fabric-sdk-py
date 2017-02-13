@@ -52,7 +52,7 @@ class ChaincodeTest(unittest.TestCase):
         client.set_state_store('test_store')
         chain.add_peer(Peer(endpoint=grpc_addr))
         proposal = chain.create_deploy_proposal(chaincode_path=CHAINCODE_PATH,
-                                                chaincode_name=CHAINCODE_NAME,
+                                                chaincode_id=CHAINCODE_NAME,
                                                 fcn=FCN, args=F_ARGS,
                                                 chain_id=CHAIN_ID, tx_id=TX_ID)
         self.assertIsNotNone(proposal)
