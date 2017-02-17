@@ -21,13 +21,6 @@ We're following [pep8 style guide](https://www.python.org/dev/peps/pep-0008/) an
 
 Weekly scrum meeting will be held at chat channel [#fabric-sdk-python](https://chat.hyperledger.org/channel/fabric-sdk-python/) at 03:00 UTC every Friday. More information, please see the project [wiki](wiki.hyperledger.org/projects/fabric-sdk-py.md).
 
-## Testing
-The following command will run the testing.
-
-```sh
-$ make check
-```
-
 ## Generating Docker images
 The following command will build a Docker image `hyperledger/fabric-sdk-py` with the fabric-sdk-py installed.
 
@@ -39,7 +32,14 @@ Also, you can use docker-compose to start a cluster for testing, including fabri
 
 ```sh
 $ docker-compose up -d
+```
+
+## Testing
+Trigger the integration tests by running the following command inside the generated `hyperledger/fabric-sdk-py` container. It's required to have the cluster up and running as described in the prior section.
+
+```sh
 $ docker exec -it fabric-sdk-py bash
+$ make check
 ```
 
 ## Change Logs
