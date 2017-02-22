@@ -18,34 +18,34 @@ import rx
 
 from hfc.api.chain.transactionproposals \
     import TransactionProposalHandler, TransactionProposalRequest, \
-    CC_INSTANTIATE, check_tran_prop_request, \
-    build_header, build_proposal, sign_proposal
+    check_tran_prop_request, \
+    build_header, build_proposal, sign_proposal, CC_INVOKE
 from hfc.api.crypto import crypto
 from hfc.protos.common import common_pb2
 from hfc.protos.peer import chaincode_pb2
 from hfc.util.utils import proto_str, proto_b
 
-_logger = logging.getLogger(__name__ + ".instantiate")
+_logger = logging.getLogger(__name__ + ".invocation")
 
 
-class Instantiate(TransactionProposalHandler):
-    """Chaincode instantiate transaction proposal handler. """
+class Invocation(TransactionProposalHandler):
+    """Chaincode invocation transaction proposal handler. """
 
     def handle(self, tran_prop_req, scheduler=None):
-        """Execute chaincode install transaction proposal request.
+        """Execute chaincode invocation transaction proposal request.
 
         Args:
             scheduler: see rx.Scheduler
-            tran_prop_req: chaincode install transaction proposal request
+            tran_prop_req: chaincode invocation transaction proposal request
 
-        Returns: An rx.Observer wrapper of chaincode install response
+        Returns: An rx.Observer wrapper of chaincode invocation response
 
         """
-        return _instantiate_chaincode(self._chain, tran_prop_req, scheduler)
+        return _invoke_chaincode(self._chain, tran_prop_req, scheduler)
 
 
-def _create_instantiate_proposal(tran_prop_req, chain):
-    """Create a chaincode instantiate proposal
+def _create_invocation_proposal(tran_prop_req, chain):
+    """Create a chaincode invocation proposal
 
     This involves assembling the proposal with the data (chaincodeID,
     chaincode invocation spec, etc.) and signing it using the private key
@@ -57,19 +57,11 @@ def _create_instantiate_proposal(tran_prop_req, chain):
     Returns: (Proposal): The created Proposal instance or None.
 
     """
-    args = [tran_prop_req.fcn] + tran_prop_req.args
+    args = ["invoke" if not tran_prop_req.fcn
+            else tran_prop_req.fcn] + tran_prop_req.args
 
-    cc_deployment_spec = chaincode_pb2.ChaincodeDeploymentSpec()
-    cc_deployment_spec.chaincode_spec.type = \
-        chaincode_pb2.ChaincodeSpec.Type.Value('GOLANG')
-    cc_deployment_spec.chaincode_spec.chaincode_id.name = \
-        proto_str(tran_prop_req.chaincode_id)
-    cc_deployment_spec.chaincode_spec.chaincode_id.path = \
-        proto_str(tran_prop_req.chaincode_path)
-    cc_deployment_spec.chaincode_spec.chaincode_id.version = \
-        proto_str(tran_prop_req.chaincode_version)
-    cc_deployment_spec.chaincode_spec.input.args.extend(list(map(
-        lambda x: proto_b(x), args)))
+    if tran_prop_req.bytes_args:
+        args += tran_prop_req.bytes_args
 
     header = build_header(tran_prop_req.signing_identity,
                           tran_prop_req.nonce,
@@ -82,10 +74,12 @@ def _create_instantiate_proposal(tran_prop_req, chain):
     cci_spec = chaincode_pb2.ChaincodeInvocationSpec()
     cci_spec.chaincode_spec.type = \
         chaincode_pb2.ChaincodeSpec.Type.Value('GOLANG')
-    cci_spec.chaincode_spec.chaincode_id.name = proto_str("lccc")
-    cci_spec.chaincode_spec.input.args.extend(
-        [proto_b(CC_INSTANTIATE), proto_b('default'),
-         cc_deployment_spec.SerializeToString()])
+    cci_spec.chaincode_spec.chaincode_id.name = \
+        proto_str(tran_prop_req.chaincode_id)
+    cci_spec.chaincode_spec.chaincode_id.version = \
+        proto_str(tran_prop_req.chaincode_version)
+    cci_spec.chaincode_spec.input.args.extend(list(map(
+        lambda x: proto_b(x), args)))
     proposal = build_proposal(cci_spec, header)
 
     signed_proposal = sign_proposal(
@@ -93,15 +87,15 @@ def _create_instantiate_proposal(tran_prop_req, chain):
     return signed_proposal
 
 
-def _instantiate_chaincode(chain, cc_install_request, scheduler=None):
-    """Install chaincode.
+def _invoke_chaincode(chain, cc_install_request, scheduler=None):
+    """Invoke chaincode.
 
     Args:
         chain: chain instance
         scheduler: see rx.Scheduler
         cc_install_request: see TransactionProposalRequest
 
-    Returns: An rx.Observable of installment response
+    Returns: An rx.Observable of invocation response
 
     """
     if len(chain.peers) < 1:
@@ -124,43 +118,43 @@ def _instantiate_chaincode(chain, cc_install_request, scheduler=None):
     return rx.Observable \
         .just(cc_install_request) \
         .map(check_tran_prop_request) \
-        .map(lambda req, idx: _create_instantiate_proposal(req, chain))
+        .map(lambda req, idx: _create_invocation_proposal(req, chain))
     # .flatmap(lambda proposal, idx:
     #          send_transaction_proposal(proposal, peers, scheduler))
 
 
-def create_instantiate_proposal_req(chaincode_id, chaincode_path,
-                                    chaincode_version, creator,
-                                    fcn='init', args=None,
-                                    nonce=crypto.generate_nonce(24),
-                                    targets=None):
-    """Create installment proposal request.
+def create_invocation_proposal_req(chaincode_id,
+                                   chaincode_version, creator,
+                                   fcn='invoke', args=None,
+                                   nonce=crypto.generate_nonce(24),
+                                   targets=None):
+    """Create invocation proposal request.
 
     Args:
-        fcn: chaincode init function
-        args: init function args
+        fcn: chaincode invoke function
+        args: invoke function args
         targets: peers
         nonce: nonce
         chaincode_id: chaincode_id
-        chaincode_path: chaincode_path
         chaincode_version: chaincode_version
         creator: user
 
     Returns: see TransactionProposalRequest
 
     """
-    return TransactionProposalRequest(chaincode_id, creator, CC_INSTANTIATE,
-                                      chaincode_path, chaincode_version,
-                                      fcn, args, nonce=nonce, targets=targets)
+    return TransactionProposalRequest(chaincode_id, creator, CC_INVOKE,
+                                      chaincode_version=chaincode_version,
+                                      fcn=fcn, args=args,
+                                      nonce=nonce, targets=targets)
 
 
-def chaincode_instantiate(chain):
-    """Create instantiate.
+def chaincode_invocation(chain):
+    """Create invocation.
 
     Args:
         chain: chain instance
 
-    Returns: Instantiate instance
+    Returns: Invocation instance
 
     """
-    return Instantiate(chain)
+    return Invocation(chain)
