@@ -3,7 +3,7 @@
  "driver":"sqlite3",
  "data_source":"fabric-ca.db",
  "user_registry": {
-   "max_enrollments": 1
+   "max_enrollments": 11
  },
  "ca_cert":"../testdata/ec.pem",
  "ca_key":"../testdata/ec-key.pem",
