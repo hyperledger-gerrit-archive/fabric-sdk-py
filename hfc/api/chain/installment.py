@@ -27,7 +27,7 @@ from hfc.api.chain.transactionproposals \
 from hfc.api.crypto import crypto
 from hfc.protos.common import common_pb2
 from hfc.protos.peer import chaincode_pb2
-from hfc.util.utils import proto_str, proto_b
+from hfc.util.utils import proto_str, proto_b, current_timestamp
 
 _logger = logging.getLogger(__name__ + ".installment")
 
@@ -48,7 +48,7 @@ class Installment(TransactionProposalHandler):
         return _install_chaincode(self._chain, tran_prop_req, scheduler)
 
 
-def _create_install_proposal(tran_prop_req, chain):
+def _create_installment_proposal(tran_prop_req, chain):
     """Create a chaincode install proposal
 
     This involves assembling the proposal with the data (chaincodeID,
@@ -73,7 +73,9 @@ def _create_install_proposal(tran_prop_req, chain):
         proto_str(tran_prop_req.chaincode_version)
     if not chain.is_dev_mode:
         cc_deployment_spec.code_package = _package_chaincode(
-            tran_prop_req.chaincode_path)
+            tran_prop_req.chaincode_path) if not \
+            tran_prop_req.chaincode_package else \
+            tran_prop_req.chaincode_package
     cc_deployment_spec.effective_date.seconds = \
         tran_prop_req.effective_date.seconds
     cc_deployment_spec.effective_date.nanos = \
@@ -109,9 +111,6 @@ def _package_chaincode(cc_path):
     Returns: The chaincode pkg path or None
 
     """
-    _logger.debug('Packaging chaincode path={}'.format(
-        cc_path))
-
     go_path = os.environ['GOPATH']
     if not cc_path:
         raise ValueError("Missing chaincode path parameter "
@@ -134,13 +133,13 @@ def _package_chaincode(cc_path):
     return code_content
 
 
-def _install_chaincode(chain, cc_install_request, scheduler=None):
+def _install_chaincode(chain, cc_installment_request, scheduler=None):
     """Install chaincode.
 
     Args:
         chain: chain instance
         scheduler: see rx.Scheduler
-        cc_install_request: see TransactionProposalRequest
+        cc_installment_request: see TransactionProposalRequest
 
     Returns: An rx.Observable of installment response
 
@@ -151,8 +150,8 @@ def _install_chaincode(chain, cc_install_request, scheduler=None):
         ))
 
     peers = {}
-    if cc_install_request and cc_install_request.targets:
-        peers = cc_install_request.targets
+    if cc_installment_request and cc_installment_request.targets:
+        peers = cc_installment_request.targets
         for peer in peers:
             if not chain.is_valid_peer(peer):
                 return rx.Observable.just(ValueError(
@@ -163,9 +162,9 @@ def _install_chaincode(chain, cc_install_request, scheduler=None):
         peers = chain.peers
 
     return rx.Observable \
-        .just(cc_install_request) \
+        .just(cc_installment_request) \
         .map(check_tran_prop_request) \
-        .map(lambda req, idx: _create_install_proposal(req, chain))
+        .map(lambda req, idx: _create_installment_proposal(req, chain))
     # .flatmap(lambda proposal, idx:
     #          send_transaction_proposal(proposal, peers, scheduler))
 
@@ -173,10 +172,12 @@ def _install_chaincode(chain, cc_install_request, scheduler=None):
 def create_installment_proposal_req(chaincode_id, chaincode_path,
                                     chaincode_version, creator,
                                     nonce=crypto.generate_nonce(24),
-                                    targets=None):
+                                    targets=None,
+                                    effective_date=current_timestamp()):
     """Create installment proposal request.
 
     Args:
+        effective_date: effective date
         targets: peers
         nonce: nonce
         chaincode_id: chaincode_id
@@ -189,7 +190,8 @@ def create_installment_proposal_req(chaincode_id, chaincode_path,
     """
     return TransactionProposalRequest(chaincode_id, creator, CC_INSTALL,
                                       chaincode_path, chaincode_version,
-                                      nonce=nonce, targets=targets)
+                                      nonce=nonce, targets=targets,
+                                      effective_date=effective_date)
 
 
 def chaincode_installment(chain):

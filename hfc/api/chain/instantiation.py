@@ -28,24 +28,24 @@ from hfc.util.utils import proto_str, proto_b
 _logger = logging.getLogger(__name__ + ".instantiate")
 
 
-class Instantiate(TransactionProposalHandler):
+class Instantiation(TransactionProposalHandler):
     """Chaincode instantiate transaction proposal handler. """
 
     def handle(self, tran_prop_req, scheduler=None):
-        """Execute chaincode install transaction proposal request.
+        """Execute chaincode instantiation transaction proposal request.
 
         Args:
             scheduler: see rx.Scheduler
-            tran_prop_req: chaincode install transaction proposal request
+            tran_prop_req: chaincode instantiation transaction proposal request
 
-        Returns: An rx.Observer wrapper of chaincode install response
+        Returns: An rx.Observer wrapper of chaincode instantiation response
 
         """
         return _instantiate_chaincode(self._chain, tran_prop_req, scheduler)
 
 
-def _create_instantiate_proposal(tran_prop_req, chain):
-    """Create a chaincode instantiate proposal
+def _create_instantiation_proposal(tran_prop_req, chain):
+    """Create a chaincode instantiation proposal
 
     This involves assembling the proposal with the data (chaincodeID,
     chaincode invocation spec, etc.) and signing it using the private key
@@ -57,7 +57,8 @@ def _create_instantiate_proposal(tran_prop_req, chain):
     Returns: (Proposal): The created Proposal instance or None.
 
     """
-    args = [tran_prop_req.fcn] + tran_prop_req.args
+    args = ["init" if not tran_prop_req.fcn
+            else tran_prop_req.fcn] + tran_prop_req.args
 
     cc_deployment_spec = chaincode_pb2.ChaincodeDeploymentSpec()
     cc_deployment_spec.chaincode_spec.type = \
@@ -93,15 +94,15 @@ def _create_instantiate_proposal(tran_prop_req, chain):
     return signed_proposal
 
 
-def _instantiate_chaincode(chain, cc_install_request, scheduler=None):
-    """Install chaincode.
+def _instantiate_chaincode(chain, cc_instantiation_request, scheduler=None):
+    """Instantiate chaincode.
 
     Args:
         chain: chain instance
         scheduler: see rx.Scheduler
-        cc_install_request: see TransactionProposalRequest
+        cc_instantiation_request: see TransactionProposalRequest
 
-    Returns: An rx.Observable of installment response
+    Returns: An rx.Observable of instantiation response
 
     """
     if len(chain.peers) < 1:
@@ -110,8 +111,8 @@ def _instantiate_chaincode(chain, cc_install_request, scheduler=None):
         ))
 
     peers = {}
-    if cc_install_request and cc_install_request.targets:
-        peers = cc_install_request.targets
+    if cc_instantiation_request and cc_instantiation_request.targets:
+        peers = cc_instantiation_request.targets
         for peer in peers:
             if not chain.is_valid_peer(peer):
                 return rx.Observable.just(ValueError(
@@ -122,19 +123,19 @@ def _instantiate_chaincode(chain, cc_install_request, scheduler=None):
         peers = chain.peers
 
     return rx.Observable \
-        .just(cc_install_request) \
+        .just(cc_instantiation_request) \
         .map(check_tran_prop_request) \
-        .map(lambda req, idx: _create_instantiate_proposal(req, chain))
+        .map(lambda req, idx: _create_instantiation_proposal(req, chain))
     # .flatmap(lambda proposal, idx:
     #          send_transaction_proposal(proposal, peers, scheduler))
 
 
-def create_instantiate_proposal_req(chaincode_id, chaincode_path,
-                                    chaincode_version, creator,
-                                    fcn='init', args=None,
-                                    nonce=crypto.generate_nonce(24),
-                                    targets=None):
-    """Create installment proposal request.
+def create_instantiation_proposal_req(chaincode_id, chaincode_path,
+                                      chaincode_version, creator,
+                                      fcn='init', args=None,
+                                      nonce=crypto.generate_nonce(24),
+                                      targets=None):
+    """Create instantiation proposal request.
 
     Args:
         fcn: chaincode init function
@@ -151,10 +152,11 @@ def create_instantiate_proposal_req(chaincode_id, chaincode_path,
     """
     return TransactionProposalRequest(chaincode_id, creator, CC_INSTANTIATE,
                                       chaincode_path, chaincode_version,
-                                      fcn, args, nonce=nonce, targets=targets)
+                                      fcn=fcn, args=args,
+                                      nonce=nonce, targets=targets)
 
 
-def chaincode_instantiate(chain):
+def chaincode_instantiation(chain):
     """Create instantiate.
 
     Args:
@@ -163,4 +165,4 @@ def chaincode_instantiate(chain):
     Returns: Instantiate instance
 
     """
-    return Instantiate(chain)
+    return Instantiation(chain)
