@@ -3,7 +3,7 @@ import grpc
 from grpc.framework.common import cardinality
 from grpc.framework.interfaces.face import utilities as face_utilities
 
-import hfc.protos.peer.chaincodeshim_pb2 as hfc_dot_protos_dot_peer_dot_chaincodeshim__pb2
+import peer.chaincodeshim_pb2 as peer_dot_chaincodeshim__pb2
 
 
 class ChaincodeSupportStub(object):
@@ -18,9 +18,9 @@ class ChaincodeSupportStub(object):
       channel: A grpc.Channel.
     """
     self.Register = channel.stream_stream(
-        '/hfc.protos.peer.ChaincodeSupport/Register',
-        request_serializer=hfc_dot_protos_dot_peer_dot_chaincodeshim__pb2.ChaincodeMessage.SerializeToString,
-        response_deserializer=hfc_dot_protos_dot_peer_dot_chaincodeshim__pb2.ChaincodeMessage.FromString,
+        '/protos.ChaincodeSupport/Register',
+        request_serializer=peer_dot_chaincodeshim__pb2.ChaincodeMessage.SerializeToString,
+        response_deserializer=peer_dot_chaincodeshim__pb2.ChaincodeMessage.FromString,
         )
 
 
@@ -39,10 +39,10 @@ def add_ChaincodeSupportServicer_to_server(servicer, server):
   rpc_method_handlers = {
       'Register': grpc.stream_stream_rpc_method_handler(
           servicer.Register,
-          request_deserializer=hfc_dot_protos_dot_peer_dot_chaincodeshim__pb2.ChaincodeMessage.FromString,
-          response_serializer=hfc_dot_protos_dot_peer_dot_chaincodeshim__pb2.ChaincodeMessage.SerializeToString,
+          request_deserializer=peer_dot_chaincodeshim__pb2.ChaincodeMessage.FromString,
+          response_serializer=peer_dot_chaincodeshim__pb2.ChaincodeMessage.SerializeToString,
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'hfc.protos.peer.ChaincodeSupport', rpc_method_handlers)
+      'protos.ChaincodeSupport', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))

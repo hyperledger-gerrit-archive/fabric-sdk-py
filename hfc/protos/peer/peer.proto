@@ -17,10 +17,10 @@ syntax = "proto3";
 
 option go_package = "github.com/hyperledger/fabric/protos/peer";
 
-package hfc.protos.peer;
+package protos;
 
-import "hfc/protos/peer/proposal.proto";
-import "hfc/protos/peer/proposal_response.proto";
+import "peer/proposal.proto";
+import "peer/proposal_response.proto";
 
 message PeerID {
     string name = 1;

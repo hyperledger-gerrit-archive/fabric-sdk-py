@@ -16,13 +16,13 @@ limitations under the License.
 
 syntax = "proto3";
 
-import "hfc/protos/common/common.proto";
-import "hfc/protos/peer/chaincodeevent.proto";
-import "hfc/protos/peer/transaction.proto";
+import "common/common.proto";
+import "peer/chaincodeevent.proto";
+import "peer/transaction.proto";
 
 option go_package = "github.com/hyperledger/fabric/protos/peer";
 
-package hfc.protos.peer;
+package protos;
 
 
 //----Event objects----

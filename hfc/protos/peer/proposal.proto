@@ -18,10 +18,10 @@ syntax = "proto3";
 
 option go_package = "github.com/hyperledger/fabric/protos/peer";
 
-package hfc.protos.peer;
+package protos;
 
-import "hfc/protos/peer/chaincode.proto";
-import "hfc/protos/peer/proposal_response.proto";
+import "peer/chaincode.proto";
+import "peer/proposal_response.proto";
 
 /*
 The flow to get a generic transaction approved goes as follows:
