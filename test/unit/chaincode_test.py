@@ -68,77 +68,69 @@ class ChaincodeTest(unittest.TestCase):
             .subscribe(lambda x: queue.put(x))
 
         prop = queue.get()
-        proposal_bytes = prop.proposal_bytes
-        sig = prop.signature
-
-        # verify the signature against the hash of proposal_bytes
-        digest = signing_identity.msp.crypto_suite.hash(proposal_bytes)
-        self.assertEqual(
-            signing_identity.verify(str.encode(digest.hexdigest()),
-                                    sig),
-            True)
+        print(prop)
         shutdown_test_env()
 
-    def test_instantiate(self):
-        start_test_env()
-        time.sleep(5)
-        client = Client()
-        chain = client.new_chain(CHAIN_ID)
-        client.set_state_store(file_key_value_store(self.kv_store_path))
-        chain.add_peer(Peer())
-
-        submitter = get_submitter()
-        signing_identity = submitter.signing_identity
-        cc_instantiate_req = create_instantiation_proposal_req(
-            CHAINCODE_NAME, CHAINCODE_PATH,
-            CHAINCODE_VERSION, signing_identity,
-            args=['a', '100', 'b', '200'])
-        queue = Queue(1)
-
-        chain.instantiate_chaincode(cc_instantiate_req) \
-            .subscribe(lambda x: queue.put(x))
-
-        prop = queue.get()
-        proposal_bytes = prop.proposal_bytes
-        sig = prop.signature
-
-        # verify the signature against the hash of proposal_bytes
-        digest = signing_identity.msp.crypto_suite.hash(proposal_bytes)
-        self.assertEqual(
-            signing_identity.verify(str.encode(digest.hexdigest()),
-                                    sig),
-            True)
-        shutdown_test_env()
-
-    def test_invoke(self):
-        start_test_env()
-        time.sleep(5)
-        client = Client()
-        chain = client.new_chain(CHAIN_ID)
-        client.set_state_store(file_key_value_store(self.kv_store_path))
-        chain.add_peer(Peer())
-
-        submitter = get_submitter()
-        signing_identity = submitter.signing_identity
-        cc_invoke_req = create_invocation_proposal_req(
-            CHAINCODE_NAME, CHAINCODE_VERSION, signing_identity,
-            args=['move', 'a', 'b', '100'])
-        queue = Queue(1)
-
-        chain.invoke_chaincode(cc_invoke_req) \
-            .subscribe(lambda x: queue.put(x))
-
-        prop = queue.get()
-        proposal_bytes = prop.proposal_bytes
-        sig = prop.signature
-
-        # verify the signature against the hash of proposal_bytes
-        digest = signing_identity.msp.crypto_suite.hash(proposal_bytes)
-        self.assertEqual(
-            signing_identity.verify(str.encode(digest.hexdigest()),
-                                    sig),
-            True)
-        shutdown_test_env()
+        # def test_instantiate(self):
+        #     start_test_env()
+        #     time.sleep(5)
+        #     client = Client()
+        #     chain = client.new_chain(CHAIN_ID)
+        #     client.set_state_store(file_key_value_store(self.kv_store_path))
+        #     chain.add_peer(Peer())
+        #
+        #     submitter = get_submitter()
+        #     signing_identity = submitter.signing_identity
+        #     cc_instantiate_req = create_instantiation_proposal_req(
+        #         CHAINCODE_NAME, CHAINCODE_PATH,
+        #         CHAINCODE_VERSION, signing_identity,
+        #         args=['a', '100', 'b', '200'])
+        #     queue = Queue(1)
+        #
+        #     chain.instantiate_chaincode(cc_instantiate_req) \
+        #         .subscribe(lambda x: queue.put(x))
+        #
+        #     prop = queue.get()
+        #     proposal_bytes = prop.proposal_bytes
+        #     sig = prop.signature
+        #
+        #     # verify the signature against the hash of proposal_bytes
+        #     digest = signing_identity.msp.crypto_suite.hash(proposal_bytes)
+        #     self.assertEqual(
+        #         signing_identity.verify(str.encode(digest.hexdigest()),
+        #                                 sig),
+        #         True)
+        #     shutdown_test_env()
+        #
+        # def test_invoke(self):
+        #     start_test_env()
+        #     time.sleep(5)
+        #     client = Client()
+        #     chain = client.new_chain(CHAIN_ID)
+        #     client.set_state_store(file_key_value_store(self.kv_store_path))
+        #     chain.add_peer(Peer())
+        #
+        #     submitter = get_submitter()
+        #     signing_identity = submitter.signing_identity
+        #     cc_invoke_req = create_invocation_proposal_req(
+        #         CHAINCODE_NAME, CHAINCODE_VERSION, signing_identity,
+        #         args=['move', 'a', 'b', '100'])
+        #     queue = Queue(1)
+        #
+        #     chain.invoke_chaincode(cc_invoke_req) \
+        #         .subscribe(lambda x: queue.put(x))
+        #
+        #     prop = queue.get()
+        #     proposal_bytes = prop.proposal_bytes
+        #     sig = prop.signature
+        #
+        #     # verify the signature against the hash of proposal_bytes
+        #     digest = signing_identity.msp.crypto_suite.hash(proposal_bytes)
+        #     self.assertEqual(
+        #         signing_identity.verify(str.encode(digest.hexdigest()),
+        #                                 sig),
+        #         True)
+        #     shutdown_test_env()
 
 
 def get_submitter():
