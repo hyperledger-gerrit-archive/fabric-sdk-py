@@ -176,23 +176,23 @@ class Ecies(Crypto):
         :param hash_algorithm: hash function
         """
         if security_level == CURVE_P_256_Size:
-            order = openssl.backend._lib.BN_new()
-            curve = openssl.backend._lib.EC_GROUP_new_by_curve_name(
-                openssl.backend._lib.NID_X9_62_prime256v1)
-            openssl.backend._lib.EC_GROUP_get_order(
-                curve, order, openssl.backend._ffi.NULL)
-            self.order = openssl.backend._bn_to_int(order)
-            self.half_order = self.order / 2
+            # order = openssl.backend._lib.BN_new()
+            # curve = openssl.backend._lib.EC_GROUP_new_by_curve_name(
+            #     openssl.backend._lib.NID_X9_62_prime256v1)
+            # openssl.backend._lib.EC_GROUP_get_order(
+            #     curve, order, openssl.backend._ffi.NULL)
+            self.order = 115792089210356248762697446949407573529996955224135760342422259061068512044369
+            self.half_order = self.order >> 1
             self.curve = ec.SECP256R1
             self.sign_hash_algorithm = hashes.SHA256()
         else:
-            order = openssl.backend._lib.BN_new()
-            curve = openssl.backend._lib.EC_GROUP_new_by_curve_name(
-                openssl.backend._lib.NID_secp384r1)
-            openssl.backend._lib.EC_GROUP_get_order(
-                curve, order, openssl.backend._ffi.NULL)
-            self.order = openssl.backend._bn_to_int(order)
-            self.half_order = self.order / 2
+            # order = openssl.backend._lib.BN_new()
+            # curve = openssl.backend._lib.EC_GROUP_new_by_curve_name(
+            #     openssl.backend._lib.NID_secp384r1)
+            # openssl.backend._lib.EC_GROUP_get_order(
+            #     curve, order, openssl.backend._ffi.NULL)
+            self.order = 39402006196394479212279040100143613805079739270465446667946905279627659399113263569398956308152294913554433653942643
+            self.half_order = self.order >> 1
             self.curve = ec.SECP384R1
             self.sign_hash_algorithm = hashes.SHA384()
 

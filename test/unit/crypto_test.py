@@ -28,6 +28,19 @@ class CryptoTest(unittest.TestCase):
     def setUp(self):
         self.plain_text = b'Hello world!'
 
+    # def test_hash(self):
+    #     msg = 'hello'
+    #
+    #     with open("/tmp/temp.pem") as file:
+    #         priv = file.read()
+    #     key = cryptography.hazmat.primitives.serialization.load_pem_private_key(priv, password=None,
+    #                                                                             backend=default_backend())
+    #     ecies256=ecies()
+    #     sig=ecies256.sign(key,msg)
+    #
+    #     with open("/tmp/sig", 'wb') as sigw:
+    #         sigw.write(sig)
+
     def test_ecies_secp384r1_sha3(self):
         """Test case for security level 384, hash SHA3."""
         ecies384 = ecies(CURVE_P_384_Size, SHA3)
@@ -114,7 +127,7 @@ class CryptoTest(unittest.TestCase):
 
         self.assertEqual(ecies256._check_malleability(
             ecies256._prevent_malleability(signature)),
-                         True)
+            True)
 
     def test_secp384r1_check_malleability_and_check_prevent_malleability(self):
         """Test case for check_malleability and prevent_malleability."""
@@ -128,7 +141,7 @@ class CryptoTest(unittest.TestCase):
 
         self.assertEqual(ecies384._check_malleability(
             ecies384._prevent_malleability(signature)),
-                         True)
+            True)
 
 
 if __name__ == '__main__':
