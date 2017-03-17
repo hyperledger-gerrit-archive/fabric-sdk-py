@@ -21,6 +21,19 @@ We're following [pep8 style guide](https://www.python.org/dev/peps/pep-0008/) an
 
 Weekly scrum meeting will be held at chat channel [#fabric-sdk-python](https://chat.hyperledger.org/channel/fabric-sdk-python/) at 03:00 UTC every Friday. More information, please see the project [wiki](wiki.hyperledger.org/projects/fabric-sdk-py.md).
 
+## Pre-requisite
+
+The sdk requires the `libssl-dev` lib, so please make sure it's already installed.
+
+Run the following cmd according to ur OS type.
+
+| OS | cmd to run |
+| -- | ---------- |
+| Ubuntu/Debian | `sudo apt-get install libssl-dev` |
+| Redhat/CentOS | `sudo yum install libssl-dev` |
+| MacOS | `brew install libssl-dev` |
+
+
 ## Testing
 The following command will run the testing.
 
