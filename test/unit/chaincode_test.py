@@ -72,14 +72,15 @@ class ChaincodeTest(unittest.TestCase):
         signing_identity = submitter.signing_identity
         cc_install_req = create_installment_proposal_req(
             CHAINCODE_NAME, CHAINCODE_PATH,
-            CHAINCODE_VERSION, signing_identity)
+            CHAINCODE_VERSION)
         queue = Queue(1)
 
-        chain.install_chaincode(cc_install_req) \
+        chain.install_chaincode(cc_install_req, signing_identity) \
             .subscribe(lambda x: queue.put(x))
 
-        response, _ = queue.get()
-        self.assertEqual(200, response.response.status)
+        response = queue.get()
+
+        self.assertEqual(200, response.status)
         self.shutdown_test_env()
 
     @unittest.skip

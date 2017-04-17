@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import random
 from abc import ABCMeta, abstractmethod
 
 import rx
@@ -20,6 +21,7 @@ import six
 from hfc.api.crypto import crypto
 from hfc.protos.common import common_pb2
 from hfc.protos.peer import proposal_pb2
+from hfc.protos.peer import transaction_pb2
 from hfc.util.utils import current_timestamp, proto_str
 
 CC_INSTALL = "install"
@@ -44,10 +46,11 @@ class TransactionProposalHandler(object):
         self._chain = chain
 
     @abstractmethod
-    def handle(self, tran_prop_req, scheduler=None):
+    def handle(self, tran_prop_req, signing_identity, scheduler=None):
         """Handle the transaction proposal request and return the result
 
         Args:
+            signing_identity: signing identity
             scheduler: see rx.Scheduler
             tran_prop_req: transaction proposal request
 
@@ -60,7 +63,6 @@ class TransactionProposalRequest(object):
     """Transaction proposal request object."""
 
     def __init__(self, chaincode_id,
-                 signing_identity,
                  prop_type,
                  chaincode_path=None,
                  chaincode_version=None,
@@ -82,7 +84,6 @@ class TransactionProposalRequest(object):
             fcn: function name
             args: function args
             nonce: nonce
-            signing_identity: signing identity
             targets: peers to send
             prop_type: transaction type
         """
@@ -92,7 +93,6 @@ class TransactionProposalRequest(object):
         self._chaincode_version = chaincode_version
         self._fcn = fcn
         self._nonce = nonce
-        self._signing_identity = signing_identity
         self._targets = {} if targets is None else targets
         self._prop_type = prop_type
         self._effective_date = effective_date
@@ -279,24 +279,6 @@ class TransactionProposalRequest(object):
         self._nonce = nonce
 
     @property
-    def signing_identity(self):
-        """Get signingIdentity.
-
-        Returns: signingIdentity
-
-        """
-        return self._signing_identity
-
-    @signing_identity.setter
-    def signing_identity(self, signing_identity):
-        """Set signingIdentity.
-
-        Args: Set signingIdentity
-
-        """
-        self._signing_identity = signing_identity
-
-    @property
     def targets(self):
         """Get targets.
 
@@ -312,6 +294,57 @@ class TransactionProposalRequest(object):
 
         """
         self._targets[target.endpoint] = target
+
+
+class TransactionRequest(object):
+    """Transaction proposal response wrapper."""
+
+    def __init__(self, responses, proposal):
+        """Construct transaction proposal response.
+
+        Args:
+            response: actual proposal response from peer
+            proposal: signed proposal sent
+        """
+        self._responses = responses
+        self._proposal = proposal
+
+    @property
+    def responses(self):
+        """Get responses.
+
+        Returns: response
+
+        """
+        return self._responses
+
+    def add_response(self, response):
+        """Set response
+
+        Args:
+            response: response
+
+        """
+        self._responses.append(response)
+
+    @property
+    def proposal(self):
+        """Get proposal.
+
+        Returns: proposal
+
+        """
+        return self._proposal
+
+    @proposal.setter
+    def proposal(self, proposal):
+        """Set proposal
+
+        Args:
+            response: proposal
+
+        """
+        self._proposal = proposal
 
 
 def check_tran_prop_request(tran_prop_req):
@@ -342,10 +375,6 @@ def check_tran_prop_request(tran_prop_req):
 
     if not tran_prop_req.chaincode_version:
         raise ValueError("Missing 'chaincode_version' parameter "
-                         "in the proposal request")
-
-    if not tran_prop_req.signing_identity:
-        raise ValueError("Missing 'signing_identity' parameter "
                          "in the proposal request")
 
     if tran_prop_req.prop_type != CC_INSTALL:
@@ -439,10 +468,32 @@ def sign_proposal(signing_identity, proposal):
     return signed_proposal
 
 
-def send_transaction_proposal(proposal, peers, scheduler=None):
+def sign_tran_payload(signing_identity, tran_payload):
+    """Sign a transaction payload
+
+    Args:
+        signing_identity: id to sign with
+        tran_payload: transaction payload to sign on
+
+    Returns: Envelope
+
+    """
+    tran_payload_bytes = tran_payload.SerializeToString()
+    sig = signing_identity.sign(tran_payload_bytes)
+
+    envelope = common_pb2.Envelope()
+    envelope.signature = sig
+    envelope.payload = tran_payload_bytes
+
+    return envelope
+
+
+def send_transaction_proposal(proposal, signing_identity,
+                              peers, scheduler=None):
     """Send transaction proposal
 
     Args:
+        signing_identity: signing identity
         proposal: transaction proposal
         peers: peers
         scheduler: see rx.Scheduler
@@ -450,7 +501,77 @@ def send_transaction_proposal(proposal, peers, scheduler=None):
     Returns: a rx.Observer wrapper of response
 
     """
-    send_executions = [peer.send_proposal(proposal, scheduler)
+    signed_proposal = sign_proposal(
+        signing_identity, proposal)
+
+    send_executions = [peer.send_proposal(signed_proposal, scheduler)
                        for peer in peers.values()]
 
-    return rx.Observable.merge(send_executions)
+    return rx.Observable.merge(send_executions) \
+        .to_iterable() \
+        .map(lambda responses: TransactionRequest(responses, proposal))
+
+
+def send_transaction(orderers, tran_req, signing_identity, scheduler=None):
+    """Send a transaction to the chain's orderer service (one or more
+    orderer endpoints) for consensus and committing to the ledger.
+
+    This call is asynchronous and the successful transaction commit is
+    notified via a BLOCK or CHAINCODE event. This method must provide a
+    mechanism for applications to attach event listeners to handle
+    'transaction submitted', 'transaction complete' and 'error' events.
+
+    Args:
+        scheduler: scheduler
+        signing_identity: signing identity
+        orderers: orderers
+        tran_req (TransactionRequest): The transaction object
+
+    Returns:
+        result (EventEmitter): an handle to allow the application to
+        attach event handlers on 'submitted', 'complete', and 'error'.
+
+    """
+    if not tran_req:
+        return rx.Observable.just(ValueError(
+            "Missing input request object on the transaction request"
+        ))
+
+    if not tran_req.responses or len(tran_req.responses) < 1:
+        return rx.Observable.just(ValueError(
+            "Missing 'proposalResponses' parameter in transaction request"
+        ))
+
+    if not tran_req.proposal:
+        return rx.Observable.just(ValueError(
+            "Missing 'proposalResponses' parameter in transaction request"
+        ))
+
+    if len(orderers) < 1:
+        return rx.Observable.just(ValueError(
+            "Missing orderer objects on this chain"
+        ))
+
+    endorsements = map(lambda response: response.endorsement,
+                       tran_req.responses)
+
+    cc_action_payload = transaction_pb2.ChaincodeActionPayload()
+    cc_action_payload.action.proposal_response_payload = \
+        tran_req.responses[0].payload
+    cc_action_payload.action.endorsements = endorsements
+    cc_action_payload.chaincode_proposal_payload = tran_req.proposal.payload
+
+    cc_tran_action = transaction_pb2.TransactionAction()
+    cc_tran_action.header = tran_req.proposal.header.signature_header
+    cc_tran_action.payload = cc_action_payload.SerializeToString()
+
+    tran = transaction_pb2.Transaction()
+    tran.actions.append(cc_tran_action)
+
+    tran_payload = common_pb2.Payload()
+    tran_payload.header = tran_req.proposal.header
+    tran_payload.data = tran.SerializeToString()
+
+    envelope = sign_tran_payload(signing_identity, tran_payload)
+
+    return random.choice(orderers.items()).broadcast(envelope, scheduler)
