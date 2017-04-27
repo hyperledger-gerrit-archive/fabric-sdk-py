@@ -26,8 +26,8 @@ CHAINCODE_NAME = 'example_cc'
 CHAINCODE_VERSION = 'v1'
 CHAIN_ID = 'testchainid'
 
-USER_ID = 'admin'
-USER_PASSWD = 'adminpw'
+USER_ID = 'user'
+USER_PASSWD = 'userpw'
 
 
 class ChaincodeTest(unittest.TestCase):

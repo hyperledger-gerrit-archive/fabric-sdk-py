@@ -111,6 +111,15 @@ registry:
           hf.Registrar.DelegateRoles: "client,user,validator,auditor"
           hf.Revoker: true
           hf.IntermediateCA: true
+     - name: user
+       pass: userpw
+       type: client
+       affiliation: ""
+       attrs:
+          hf.Registrar.Roles: "client,user,peer,validator,auditor,ca"
+          hf.Registrar.DelegateRoles: "client,user,validator,auditor"
+          hf.Revoker: true
+          hf.IntermediateCA: true
 
 #############################################################################
 #  Database section

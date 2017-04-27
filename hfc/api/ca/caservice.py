@@ -24,6 +24,7 @@ from cryptography.x509 import NameOID
 from hfc.api.crypto.crypto import ecies
 
 DEFAULT_CA_ENDPOINT = 'http://localhost:7054'
+DEFAULT_CA_BASE_URL = '/api/v1/'
 
 _logger = logging.getLogger(__name__)
 
@@ -31,7 +32,8 @@ _logger = logging.getLogger(__name__)
 class CAClient(object):
     """Client for communicating with the Fabric CA APIs."""
 
-    def __init__(self, target=DEFAULT_CA_ENDPOINT, ca_certs_path=None):
+    def __init__(self, target=DEFAULT_CA_ENDPOINT, ca_certs_path=None,
+                 base_url=DEFAULT_CA_BASE_URL):
         """ Init CA client.
 
         Args:
@@ -39,7 +41,7 @@ class CAClient(object):
             ca_certs_path (str): Local ca certs path
         """
         self._ca_certs_path = ca_certs_path
-        self._base_url = target + "/api/v1/cfssl/"
+        self._base_url = target + base_url
 
     def enroll(self, enrollment_id, enrollment_secret, csr):
         """Enroll a registered user in order to receive a signed X509 certificate
