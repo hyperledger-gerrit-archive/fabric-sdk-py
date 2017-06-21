@@ -61,7 +61,7 @@ See [Change Log](docs/change_log.md).
 
 ## Wiki
 
-More information, please see the project [wiki](wiki.hyperledger.org/projects/fabric-sdk-py.md).
+More information, please see the project [wiki](wiki.hyperledger.org/projects/fabric-sdk-py).
 
 ## License <a name="license"></a>
 The Hyperledger Fabric-SDK-Py Project uses the [Apache License Version 2.0](LICENSE) software license.
