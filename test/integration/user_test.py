@@ -10,16 +10,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
-import time
 import os
+import time
+import unittest
 
+from hfc.fabric_ca.caservice import ca_service
+
+from hfc.fabric.msp.msp import MSP
+from hfc.fabric.user import User
+from hfc.fabric_ca.crypto.crypto import ecies
 from test.unit.util import cli_call
-from hfc.api.ca.caservice import ca_service
-from hfc.api.user import User
-from hfc.api.msp.msp import MSP
-from hfc.api.crypto.crypto import ecies
-
 
 USER_ID = 'user'
 USER_PASSWD = 'userpw'

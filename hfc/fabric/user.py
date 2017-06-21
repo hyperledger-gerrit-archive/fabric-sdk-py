@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from hfc.api.ca.caservice import ca_service
-from .crypto.crypto import ecies
+from hfc.fabric_ca.caservice import ca_service
+
+from hfc.fabric_ca.crypto.crypto import ecies
 from .msp.identity import Identity, Signer, SigningIdentity
 from .msp.msp import msp
 

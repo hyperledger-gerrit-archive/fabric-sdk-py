@@ -11,7 +11,7 @@
 # limitations under the License.
 
 import unittest
-from hfc.api.user import User
+from hfc.fabric.user import User
 
 
 class UserTest(unittest.TestCase):
