@@ -15,7 +15,8 @@
 
 import logging
 
-from hfc.fabric.channel.channel import Channel
+from hfc.fabric import user
+from hfc.fabric.channel.channel import Channel, create_system_channel
 
 _logger = logging.getLogger(__name__ + ".client")
 
@@ -118,3 +119,28 @@ class Client(object):
 
         """
         self._state_store = state_store
+
+    def _validate(self):
+        """ Validate client instance
+        
+        Raises: ValueError
+
+        """
+        if not self._crypto_suite:
+            raise ValueError("No cryptoSuite has been set.")
+
+        user.validate(self._user_context)
+
+    def send_install_proposal(self, install_proposal_req, peers):
+        """ Send install proposal
+        
+        Args:
+            install_proposal_req: install_proposal_request
+            peers: peers
+
+        Returns: A set of proposal_response
+
+        """
+        self._validate()
+        sys_channel = create_system_channel(self)
+        return sys_channel.send_install_proposal(install_proposal_req, peers)
