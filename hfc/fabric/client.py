@@ -14,14 +14,17 @@
 #
 
 import logging
+import threading
 
-from hfc.fabric.channel.channel import Channel
 from hfc.protos.common import common_pb2, configtx_pb2
 from hfc.util import utils
 
 # inject global default config
 from hfc.fabric.config.default import DEFAULT
+
 assert DEFAULT
+from hfc.fabric import user
+from hfc.fabric.channel.channel import Channel, create_system_channel
 
 _logger = logging.getLogger(__name__ + ".client")
 
@@ -185,7 +188,7 @@ class Client(object):
             proto_payload = common_pb2.Payload()
 
             proto_payload.header.CopyFrom(proto_header)
-            proto_payload.data = proto_config_update_envelope\
+            proto_payload.data = proto_config_update_envelope \
                 .SerializeToString()
             payload_bytes = proto_payload.SerializeToString()
 
@@ -330,3 +333,30 @@ class Client(object):
 
         """
         self._state_store = state_store
+
+    def _validate(self):
+        """ Validate client instance
+        
+        Raises: ValueError
+
+        """
+        if not self._crypto_suite:
+            raise ValueError("No cryptoSuite has been set.")
+
+        user.validate(self._user_context)
+
+    def send_install_proposal(self, install_proposal_req, peers):
+        """ Send install proposal
+        
+        Args:
+            install_proposal_req: install_proposal_request
+            peers: peers
+
+        Returns: A set of proposal_response
+
+        """
+        self._validate()
+        sys_channel = create_system_channel(self)
+        return sys_channel.send_install_proposal(install_proposal_req, peers)
+
+    def new_install_proposal_req(self):

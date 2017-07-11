@@ -15,14 +15,14 @@
 import random
 import sys
 
-from hfc.fabric.tx_context import TXContext
-from hfc.fabric.user import check
+from hfc.fabric import user
+from hfc.fabric.transaction.tx_context import TXContext
+from hfc.fabric.user import validate
 from hfc.protos.common import common_pb2
 from hfc.protos.orderer import ab_pb2
 from hfc.util.utils import proto_str, current_timestamp
-from hfc.fabric.channel.installment import chaincode_installment
-from hfc.fabric.channel.invocation import chaincode_invocation
-from hfc.fabric.channel.instantiation import chaincode_instantiation
+
+SYSTEM_CHANNEL_NAME = ""
 
 
 class Channel(object):
@@ -31,16 +31,23 @@ class Channel(object):
     call client.create_channel().
     """
 
-    def __init__(self, name, client):
-
-        self._name = name
+    def __init__(self, name, client, is_sys_chan=False):
         self._client = client
         self._orderers = {}
         self._peers = {}
-        self._tcert_batch_size = 0
+        self._initialized = False
+        self._shutdown = False
+        self._is_sys_chan = is_sys_chan
         self._is_dev_mode = False
-        self._is_pre_fetch_mode = False
-        self.initialized = False
+
+        if self._is_sys_chan:
+            self._name = SYSTEM_CHANNEL_NAME
+            self._initialized = True
+        else:
+            if not name:
+                raise ValueError(
+                    "Channel name is invalid can not be null or empty.")
+            self._name = name
 
     def add_orderer(self, orderer):
         """Add orderer endpoint to a channel object.
@@ -68,6 +75,23 @@ class Channel(object):
         if orderer.endpoint in self._orderers:
             self._orderers.pop(orderer.endpoint, None)
 
+    def add_peer(self, peer):
+        """Add peer endpoint to a chain object.
+
+        Args:
+             peer: an instance of the Peer class
+        """
+        self._peers[peer.endpoint] = peer
+
+    def remove_peer(self, peer):
+        """Remove peer endpoint from a channel object.
+
+        Args:
+            peer: an instance of the Peer class
+        """
+        if peer.endpoint in self._peers:
+            self._peers.pop(peer.endpoint, None)
+
     @property
     def orderers(self):
         """Get orderers of a channel.
@@ -76,6 +100,14 @@ class Channel(object):
 
         """
         return self._orderers
+
+    @property
+    def peers(self):
+        """Get peers of a channel.
+
+        Returns: The peer list on the chain
+        """
+        return self._peers
 
     def _get_tx_context(self, user_context=None):
         """Get tx context
@@ -86,11 +118,11 @@ class Channel(object):
         Returns: A tx_context instance
 
         Raises: ValueError
-
+        
         """
-        user = user_context if not None else self._client.user_context
-        check(user)
-        return TXContext(user, self._client.crypto_suite)
+        user = user_context if not None else self._client.requester
+        validate(user)
+        return TXContext(self, user, self._client.crypto_suite)
 
     def _get_latest_block(self, orderer):
         """ Get latest block from orderer."""
@@ -128,6 +160,15 @@ class Channel(object):
             return random.choice(list(self._orderers.values()))
 
     @property
+    def is_dev_mode(self):
+        """Get is_dev_mode
+
+        Returns: is_dev_mode
+
+        """
+        return self._is_dev_mode
+
+    @property
     def name(self):
         """Get channel name.
 
@@ -135,42 +176,6 @@ class Channel(object):
 
         """
         return self._name
-
-    @property
-    def tcert_batch_size(self):
-        """Get the tcert batch size
-
-        :return: the current tcert batch size
-
-        """
-        return self._tcert_batch_size
-
-    @tcert_batch_size.setter
-    def tcert_batch_size(self, tcert_batch_size):
-        """Set the tcert batch size
-
-        :param tcert_batch_size: tcert batch size (integer)
-
-        """
-        self._tcert_batch_size = tcert_batch_size
-
-    def add_peer(self, peer):
-        """Add peer endpoint to a channel object
-
-        :param peer: an instance of the Peer class
-
-        """
-        self._peers[peer.endpoint] = peer
-
-    def remove_peer(self, peer):
-        """Remove peer endpoint from a channel object
-
-        Args:
-            peer: peer
-
-        """
-        if peer.endpoint in self._peers:
-            self._peers.pop(peer.endpoint, None)
 
     @property
     def peers(self):
@@ -181,15 +186,6 @@ class Channel(object):
         """
         return self._peers
 
-    def is_valid_peer(self, peer):
-        """Check a peer if it is on this channel
-
-        Returns: True/False
-
-        """
-        endpoint = peer.endpoint()
-        return endpoint in self._peers
-
     def state_store(self):
         """Get the key val store instance of the instantiating client.
         Get the KeyValueStore implementation (if any)
@@ -199,6 +195,104 @@ class Channel(object):
 
         """
         return self._client.state_store
+
+    def _validate_state(self):
+        """Validate channel state.
+
+        Raises: 
+            ValueError
+
+        """
+        if self._shutdown:
+            raise ValueError(
+                "Channel %s has been shutdown.".format(self._name))
+
+        if not self._initialized:
+            raise ValueError(
+                "Channel %s has not been initialized.".format(self._name))
+
+        user.validate(self._client.requester)
+
+    @property
+    def is_sys_chan(self):
+        """Get if system channel"""
+        return self._is_sys_chan
+
+    def _validate_peer(self, peer):
+        """Validate peer
+
+        Args:
+            peer: peer
+
+        Raises:
+            ValueError
+
+        """
+        if not peer:
+            raise ValueError("Peer value is null.")
+
+        if self._is_sys_chan:
+            return
+
+        if peer not in self._peers:
+            raise ValueError(
+                "Channel %s does not have peer %s".format(self._name,
+                                                          peer.endpoint))
+
+        if self not in peer.channels:
+            raise ValueError(
+                "Peer %s not joined this channel %s".format(peer.endpoint,
+                                                            self._name)
+            )
+
+    def _validate_peers(self, peers):
+        """Validate peer set
+
+        Args:
+            peers: peers
+
+        Raises:
+            ValueError
+
+        """
+        if not peers:
+            raise ValueError("Collection of peers is null.")
+
+        if len(peers) == 0:
+            raise ValueError("Collection of peers is empty.")
+
+        for peer in peers:
+            self._validate_peer(peer)
+
+    def send_install_proposal(self, install_proposal_req, peers):
+        """ Send install chaincode proposal
+
+        Args:
+            install_proposal_req: install proposal request
+            peers: a set of peer to send
+
+        Returns: a set of proposal response
+
+        """
+        self._validate_state()
+        self._validate_peers(peers)
+
+        if not install_proposal_req:
+            raise ValueError("InstallProposalRequest is null.")
+
+        tx_context = self._get_tx_context(install_proposal_req.requester)
+        tx_context.proposal_wait_time(install_proposal_req.proposal_wait_time)
+
+    def create_system_channel(client):
+        """ Create system channel instance
+
+        Args:
+            client: client instance
+
+        Returns: system channel instance
+
+        """
+        return Channel(SYSTEM_CHANNEL_NAME, client, True)
 
     def _build_channel_header(type, tx_id, channel_id,
                               timestamp, epoch=0, extension=None):
@@ -287,61 +381,16 @@ class Channel(object):
         """
         pass
 
-    def query_transaction(self, transactionID):
+    def query_transaction(self, tx_id):
         """Queries the ledger for Transaction by transaction ID.
 
         Args:
-            transactionID: transaction ID (string)
+            tx_id: transaction ID (string)
 
         Returns: TransactionInfo containing the transaction
 
         """
         pass
-
-    def install_chaincode(self, cc_install_request,
-                          signing_identity, scheduler=None):
-        """Install chaincode.
-
-        Args:
-            signing_identity: signing identity
-            scheduler: see rx.Scheduler
-            cc_install_request: see TransactionProposalRequest
-
-        Returns: An rx.Observable of install result
-
-        """
-        return chaincode_installment(self).handle(
-            cc_install_request, signing_identity, scheduler)
-
-    def instantiate_chaincode(self, cc_instantiate_request,
-                              signing_identity, scheduler=None):
-        """Instantiate chaincode.
-
-        Args:
-            signing_identity: signing identity
-            scheduler: see rx.Scheduler
-            cc_instantiate_request: see TransactionProposalRequest
-
-        Returns: An rx.Observable of instantiate result
-
-        """
-        return chaincode_instantiation(self).handle(
-            cc_instantiate_request, signing_identity, scheduler)
-
-    def invoke_chaincode(self, cc_invoke_request,
-                         signing_identity, scheduler=None):
-        """Invoke chaincode.
-
-        Args:
-            signing_identity: signing identity
-            cc_invoke_request: see TransactionProposalRequest
-            scheduler: see rx.Scheduler
-
-        Returns: An rx.Observable of instantiate result
-
-        """
-        return chaincode_invocation(self).handle(
-            cc_invoke_request, signing_identity, scheduler)
 
     @staticmethod
     def instantiate(name, config, signers, orderer):
@@ -351,7 +400,7 @@ class Channel(object):
 
         Args:
             name: channel name
-            config: cofiguration class instance
+            config: configuration class instance
             config_signed(string): signed config file
             orderer: orderer instance
         Return: True successfully or False in failure

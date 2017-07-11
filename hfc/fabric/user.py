@@ -248,7 +248,7 @@ class User(object):
             raise IOError("Cannot deserialize the user")
 
 
-def check(user):
+def validate(user):
     """ Check the user.
 
     Args:

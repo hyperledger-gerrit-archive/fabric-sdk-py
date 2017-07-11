@@ -18,7 +18,7 @@ from hfc.util.utils import create_serialized_identity
 class TXContext(object):
     """ A class represent Transaction context."""
 
-    def __init__(self, user, crypto):
+    def __init__(self, user, crypto, proposal_wait_time):
         """ Construct transaction context
 
         Args:
@@ -31,6 +31,7 @@ class TXContext(object):
         self._nonce = crypto.generate_nonce(24)
         hash_func = crypto.hash
         self._tx_id = hash_func(self._nonce + self._identity).hexdigest()
+        self._proposal_wait_time = proposal_wait_time
 
     @property
     def tx_id(self):
@@ -56,3 +57,13 @@ class TXContext(object):
         """Sign the text"""
         return self._crypto.sign(self._user.enrollment.private_key,
                                  plain_text)
+
+    @property
+    def proposal_wait_time(self):
+        """Get proposal wait time"""
+        return self._proposal_wait_time
+
+    @proposal_wait_time.setter
+    def proposal_wait_time(self, proposal_wait_time):
+        """Set proposal wait time"""
+        self._proposal_wait_time = proposal_wait_time
