@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 import logging
+import threading
 
 import rx
 
@@ -31,6 +32,8 @@ class Peer(object):
     """
 
     def __init__(self, endpoint=DEFAULT_PEER_ENDPOINT, pem=None, opts=None):
+        self._lock = threading.RLock()
+        self._channels = []
         self._endpoint = endpoint
         self._endorser_client = peer_pb2_grpc.EndorserStub(
             channel(self._endpoint, pem, opts))
@@ -57,3 +60,18 @@ class Peer(object):
 
         """
         return self._endpoint
+
+    def join(self, channel):
+        """ Join a channel
+        
+        Args:
+            channel: a channel instance
+
+        """
+        with self._lock:
+            self._channels.append(channel)
+
+    @property
+    def channels(self):
+        with self._lock:
+            return self._channels
