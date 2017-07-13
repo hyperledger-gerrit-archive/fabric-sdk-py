@@ -69,6 +69,17 @@ class CATest(unittest.TestCase):
                                  self._enrollment_secret, test_pem)
         self.assertTrue(ecert.startswith(b"-----BEGIN CERTIFICATE-----"))
 
+    def test_register_success(self):
+        """Test enroll success.
+        """
+        time.sleep(5)
+        ca_client = CAClient("http://" + self._ca_server_address)
+        ecert = ca_client.enroll(self._enrollment_id,
+                                 self._enrollment_secret, test_pem)
+        resp = ca_client.register(name="test_user_register",
+                                  secret="test_user_register_pass")
+        self.assertTrue(resp == "test_user_register_pass")
+
     def test_enroll_with_generated_csr_success(self):
         """Test enroll with generated csr success.
         """
