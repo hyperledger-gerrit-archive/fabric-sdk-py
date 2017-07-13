@@ -5,8 +5,8 @@ echo "===Checking Docker and Docker-Compose version"
 docker version
 docker-compose -v
 
-# install tox
-pip install tox
+# install checking tools
+pip install tox pylint flake8
 
 # pull fabric images
 ARCH=x86_64

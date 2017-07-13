@@ -60,7 +60,7 @@ class CATest(unittest.TestCase):
         ca_chain = ca_client.get_cainfo()
         self.assertTrue(ca_chain.startswith(b"-----BEGIN CERTIFICATE-----"))
 
-    def test_enroll_success(self):
+    def test_enroll(self):
         """Test enroll success.
         """
         time.sleep(5)
@@ -69,7 +69,19 @@ class CATest(unittest.TestCase):
                                  self._enrollment_secret, test_pem)
         self.assertTrue(ecert.startswith(b"-----BEGIN CERTIFICATE-----"))
 
-    def test_enroll_with_generated_csr_success(self):
+    @unittest.skip("temp skipping register until its finish")
+    def test_register(self):
+        """Test enroll success.
+        """
+        time.sleep(5)
+        ca_client = CAClient("http://" + self._ca_server_address)
+        ecert = ca_client.enroll(self._enrollment_id,
+                                 self._enrollment_secret, test_pem)
+        resp = ca_client.register(enrollment_id="test_user_register",
+                                  enrollment_secret="test_user_register_pass")
+        self.assertTrue(resp == "test_user_register_pass")
+
+    def test_enroll_with_csr(self):
         """Test enroll with generated csr success.
         """
         time.sleep(5)

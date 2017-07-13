@@ -93,6 +93,7 @@ class CAClient(object):
         self._ca_certs_path = ca_certs_path
         self._base_url = target + base_url
         self._ca_name = ca_name
+        self.enrollment_cert = ""  # base64 encoded PEM content
 
     def _send_ca_post(self, path, **param):
         """ Send a post request to the ca service
@@ -151,8 +152,15 @@ class CAClient(object):
 
         if self._ca_name != "":
             req = {
-                "caName": self._ca_name,
-                "certificate_request": csr
+                "caname": self._ca_name,
+                "certificate_request": csr,
+                # "hosts": [],
+                # "subject": {"cn":"", "names": "", "serialnumber": ""},
+                # "profile": "",
+                # "crl_override": "",
+                # "label": "",
+                # "serial": "",
+                # "extensions": "",
             }
         else:
             req = {"certificate_request": csr}
@@ -164,11 +172,72 @@ class CAClient(object):
         _logger.debug("Raw response json {0}".format(response))
 
         if response['success']:
-            return base64.b64decode(response['result']['Cert'])
+            self.enrollment_cert = base64.b64decode(response['result']['Cert'])
+            return self.enrollment_cert
         else:
             raise ValueError("Enrollment failed with errors {0}"
                              .format(response['errors']))
 
+    def register(self, enrollment_id, role="client", enrollment_secret="",
+                 max_enrollment=-1, affiliation="", attrs=[], signing_identity=None, ca_name=""):
+        """
+        Register a new user.
+
+        See fabric-ca/api/client.go
+
+        :param enrollment_id: Name of the identity to register
+        :param role: type of the identity, e.g., peer, user, app
+        :param enrollment_secret: optional secret for identity to enroll
+        :param max_enrollment: max enrollment time, -1 means unlimited
+        :param affiliation: identity's affiliation
+        :param attrs: identity attributes
+        :param ca_name: which ca service to use
+        :return: the secret for the registered identity
+        """
+        if not self.enrollment_cert:
+            raise ValueError("No valid enrollment cert found for register")
+
+        req = {
+            "id": enrollment_id,
+            "secret": enrollment_secret,
+            "type": role,
+            "affiliation": affiliation,
+            "max_enrollment": max_enrollment,
+            "attrs": attrs,
+            "caname": ca_name
+        }
+
+        # TODO: enable signing_identity
+        headers = {"Authorization": self.generate_auth_token(req,
+                                                             signing_identity)}
+
+        response = self._send_ca_post(path="register", json=req,
+                                      headers=headers,
+                                      verify=self._ca_certs_path)
+
+        if response['success']:
+            return response['result']['credentials']
+        else:
+            raise ValueError("Register failed with errors {0}"
+                             .format(response['errors']))
+
+    def generate_auth_token(self, reqBody, signingIdentity):
+        """
+        Generate the authentication token on the body using given signingid.
+
+        :param reqBody:
+        :param signingIdentity:
+        :return: token string
+        """
+        body = base64.decodebytes(reqBody)
+        cert = base64.decodebytes(signingIdentity.cert)
+
+        content = body + '.' + cert
+        signature = signingIdentity.sign(content)
+        _logger.debug("Signature={}".format(signature))
+
+        signature_b64 = base64.encodebytes(signature)
+        return cert + "." + signature_b64
 
 class CAService(object):
     """This is a ca server delegate."""

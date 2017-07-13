@@ -1,5 +1,5 @@
 FROM python:3.5
-MAINTAINER fabric-sdk-py "https://wiki.hyperledger.org/projects/fabric-sdk-py.md"
+MAINTAINER fabric-sdk-py "https://github.com/hyperledger/fabric-sdk-py"
 
 COPY . /fabric-sdk-py
 
