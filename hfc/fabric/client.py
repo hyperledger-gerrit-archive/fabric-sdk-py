@@ -118,3 +118,53 @@ class Client(object):
 
         """
         self._state_store = state_store
+
+    def build_transation_id(self, nonce):
+        """
+        args:
+            nonce: random number
+        return:
+            the transation id of the transaction
+        """
+
+        pass
+
+    def sign_channel_config(self, config):
+        """
+        args:
+             config for creating a channel.
+        returns:
+             the signature
+        """
+
+        pass
+
+    def extract_channel_config(self, envelope):
+        """
+        Desc: extract the protobuf configu pdate object out of
+              the config envelope object created by configtxgen tool
+        args:
+             envelope: encodeed bytes of the config envelop protofu
+        return:
+             the encoded bytes of the config update protobuf, ready
+        to be signed.
+        """
+        pass
+
+    def create_channel(self, **request):
+        """
+        args:
+            request = {
+                      @name(required): channel name
+                      @orderer(required): orderer to send the request
+                      @signatures(required): signatures from the peers of config
+                       it is required when config is used
+                      @tx_id(required): transation id for the genesis block
+                      @config(optional): extracted from envlope creatted by
+                       configtxlator
+                  }
+        return:
+            True if creating channel successfully, False in failure.
+        """
+
+        pass
