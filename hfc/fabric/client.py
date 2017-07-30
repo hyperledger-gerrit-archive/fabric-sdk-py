@@ -118,3 +118,40 @@ class Client(object):
 
         """
         self._state_store = state_store
+
+    def build_transation_id(self, nonce):
+        """
+        args:
+            nonce: random number
+        return:
+            the transation id of the transaction
+        """
+
+        pass
+
+    def sign_channel_config(self, config):
+        """
+        :args:
+             config for creating a channel.
+        returns:
+             the signature
+        """
+
+        pass
+
+    def create_channel(self, **request):
+        """
+        args:
+            request = {
+                      name(required): name of the channel,
+                      orderer(required): orderer to send the request,
+                      config: config for creating the channel from configtx tool,
+                      signatures: signatures from the peers of config,
+                      tx_id : transation id for the genesis block,
+                      nonce : nonce
+                  }
+        return:
+            True if creating channel successfully, False in failure.
+        """
+
+        pass
