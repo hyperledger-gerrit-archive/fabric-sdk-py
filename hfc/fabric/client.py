@@ -16,6 +16,7 @@
 import logging
 
 from hfc.fabric.channel.channel import Channel
+from hfc.fabric.orderer import Orderer
 from hfc.protos.common import common_pb2, configtx_pb2
 from hfc.util import utils
 
@@ -66,6 +67,22 @@ class Client(object):
 
         """
         return self._channels.get(name, None)
+
+    def new_orderer(self, request):
+        """ To create a new orderer instance.
+
+        Args:
+            request(dict) including the field below:
+                endpoint (str, required): The grpc endpoint of the orderer.
+                    pem (bytes, optional): The tls certificate for the given
+                    orderer as bytes.
+                opts (tuple, optional): Additional grpc config options as
+                    tuple e.g. ((key, val),).
+
+        Reture:
+            a new instance of Orderer
+        """
+        return Orderer(**request)
 
     def create_channel(self, request):
         """Calls the orderer to start building the new channel.
