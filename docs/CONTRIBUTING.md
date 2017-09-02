@@ -106,3 +106,6 @@ Notice you will get a [gerrit item url](http://gerrit.hyperledger.org/r/7917), o
 After the ci checking passed, add [reviewers](https://wiki.hyperledger.org/projects/fabric-sdk-py#contributors) to the reviewer list and also post the gerrit item url at the [RocketChat channel](https://chat.hyperledger.org/channel/fabric-sdk-py). The patch will be merged into the `master` branch after passing the review, then mark the Jira item as `Done`.
 
 * If you need to refine the patch further as the reviewers may suggest, you can change on the same branch, and commit the new code with `git commit -a --amend`, and then use the `git review` command again.
+
+## License <a name="license"></a>
+The Hyperledger Project uses the [Apache License Version 2.0](LICENSE) software license.
