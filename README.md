@@ -71,3 +71,6 @@ The Hyperledger Fabric-SDK-Py Project uses the [Apache License Version 2.0](LICE
 * [Hyperledger mailing lists and archives](http://lists.hyperledger.org/)
 * [Hyperledger Chat](http://chat.hyperledger.org)
 * [Hyperledger Wiki](https://github.com/hyperledger/hyperledger/wiki)
+
+## License <a name="license"></a>
+The Hyperledger Project uses the [Apache License Version 2.0](LICENSE) software license.
