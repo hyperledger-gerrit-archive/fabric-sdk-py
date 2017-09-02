@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+
 TransactionType = {
     'deploy': 0,
     'invoke': 1,
