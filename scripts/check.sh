@@ -1,6 +1,7 @@
-#!/bin/bash -eu
+# SPDX-License-Identifier: Apache-2.0
+#
 
-set -o pipefail
+#!/bin/bash -eu
 
 # checking local version
 echo "===> Checking Docker and Docker-Compose version"
