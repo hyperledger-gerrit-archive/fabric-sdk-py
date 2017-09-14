@@ -1,4 +1,5 @@
-
+# SPDX-License-Identifier: Apache-2.0
+#
     FROM hyperledger/fabric-ccenv
     COPY . $GOPATH/src/build-chaincode/
     WORKDIR $GOPATH
