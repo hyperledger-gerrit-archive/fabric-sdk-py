@@ -17,11 +17,20 @@ from hfc.protos.common import common_pb2
 from hfc.protos.orderer import ab_pb2
 from hfc.protos.peer import chaincode_pb2, proposal_pb2
 from hfc.util import utils
-from hfc.util.utils import proto_str, current_timestamp, proto_b
+from hfc.util.utils import proto_str, current_timestamp, proto_b, \
+    build_header, build_channel_header, build_cc_proposal, \
+    create_serialized_identity, send_transaction_proposal
+
+if sys.version_info < (3, 0):
+    from Queue import Queue
+else:
+    from queue import Queue
+
 
 SYSTEM_CHANNEL_NAME = ""
 
 _logger = logging.getLogger(__name__ + ".channel")
+_logger.setLevel(logging.DEBUG)
 
 
 class Channel(object):
@@ -355,23 +364,6 @@ class Channel(object):
         """
         return True
 
-    def update(self, config, orderer, signers):
-        """Update a channel configuration
-
-        Calls the orderer(s) to update an existing channel. This allows the
-        addition and deletion of Peer nodes to an existing channel, as well as
-        the update of Peer certificate information upon certificate renewals.
-
-        Args:
-            config: config to be updated
-            orderer: specific orderer to use
-            signers: the Ecert of users
-        Returns: True if the channel update process was successful,
-            False otherwise.
-
-        """
-        return True
-
     def is_readonly(self):
         """Check the channel if read-only
 
@@ -416,62 +408,6 @@ class Channel(object):
         """
         pass
 
-    @staticmethod
-    def instantiate(name, config, signers, orderer):
-        """
-        This function will be the factory function to create
-        a really new channel.
-
-        Args:
-            name: channel name
-            config: configuration class instance
-            config_signed(string): signed config file
-            orderer: orderer instance
-        Return: True successfully or False in failure
-        """
-        pass
-
-    def _update_or_create(self, config, signers, orderer):
-        """
-        Send configuration to orderer for updating.
-        This function really does all the dirty work with remote orderer.
-        This is the low level function to create or update function.
-
-        Args:
-            conifg(string):  channel config
-            signers(list):   list of user Ecert
-            orderer:         Orderer instance
-        Return: True if updated sucessfully, False otherwise
-
-        """
-        pass
-
-    def _get_config_payload(self, config, signers, is_update):
-        """
-        This function will build the config payload sent to
-        orderer.
-        Args:
-            config: channel config
-            user:   user client
-        Return:
-             the config payload for the orderer, None if failure.
-
-        """
-        pass
-
-    def _get_config_sigs(self, config, signers):
-        """
-        This function is used to sign the config with user or
-        to update the user signature.
-
-        Args:
-            config: channel configuration instance to be signed
-            user:   user to signed the config
-            is_update: wether to update the config
-        Return: signed config in string
-        """
-        pass
-
     def _package_chaincode(self, cc_path, cc_type):
         """ Package all chaincode env into a tar.gz file
 
@@ -511,6 +447,148 @@ class Channel(object):
 
         else:
             raise ValueError('Currently only support install GOLANG chaincode')
+
+    def get_genesis_block(self):
+        """ get the genesis block of the channel.
+        Return: the genesis block in success or None in fail.
+        """
+        _logger.info("get genesis block - start")
+
+        orderer = self._get_random_orderer()
+
+        tx_context = self._client.tx_context
+
+        # build start
+        seek_specified_start = ab_pb2.SeekSpecified()
+        seek_specified_start.number = 0
+        seek_start = ab_pb2.SeekPosition()
+        seek_start.specified.CopyFrom(seek_specified_start)
+
+        # build stop
+        seek_specified_stop = ab_pb2.SeekSpecified()
+        seek_specified_stop.number = 0
+        seek_stop = ab_pb2.SeekPosition()
+        seek_stop.specified.CopyFrom(seek_specified_stop)
+
+        # seek info with all parts
+        seek_info = ab_pb2.SeekInfo()
+        seek_info.start.CopyFrom(seek_start)
+        seek_info.stop.CopyFrom(seek_stop)
+        seek_info.behavior = \
+            ab_pb2.SeekInfo.SeekBehavior.Value('BLOCK_UNTIL_READY')
+        seek_info_header = build_channel_header(
+            common_pb2.HeaderType.Value('DELIVER_SEEK_INFO'),
+            tx_context.tx_id,
+            self.name,
+            current_timestamp(),
+            tx_context.epoch)
+
+        seek_header = build_header(
+            tx_context.identity,
+            seek_info_header,
+            tx_context.nonce)
+
+        seek_payload = common_pb2.Payload()
+        seek_payload.header.CopyFrom(seek_header)
+        seek_payload.data = seek_info.SerializeToString()
+        seek_payload_bytes = seek_payload.SerializeToString()
+        sig = tx_context.sign(seek_payload_bytes)
+
+        envelope = common_pb2.Envelope()
+        envelope.signature = sig
+        envelope.payload = seek_payload_bytes
+
+        q = Queue(1)
+        response = orderer.delivery(envelope)
+        response.subscribe(on_next=lambda x: q.put(x),
+                           on_error=lambda x: q.put(x))
+
+        res, _ = q.get(timeout=5)
+
+        if res.block is None or res.block == '':
+            _logger.error("fail to get genesis block")
+            return None
+
+        _logger.info("get genesis block successfully, block=%s",
+                     res.block.header)
+        return res.block
+
+    def join_channel(self, request):
+        """
+        To join the peer to a channel.
+
+        Args:
+            request: the request to join a channel
+        Return:
+            True in sucess or False in failure
+        """
+        _logger.debug('join_channel - start')
+
+        err_msg = None
+        if(not request):
+            err_msg = "Missing all required input request parameters"
+
+        if 'targets'not in request:
+            err_msg = "Missing peers parameter"
+
+        if 'block' not in request:
+            err_msg = "Missing genesis block parameter"
+
+        if 'tx_id' not in request:
+            err_msg = "Missing transaction id parameter"
+
+        if err_msg:
+            _logger.error('join_channel error: {}'.format(err_msg))
+            raise ValueError(err_msg)
+
+        tx_context = self._client.tx_context
+        chaincode_input = chaincode_pb2.ChaincodeInput()
+        chaincode_input.args.append(request['block'])
+
+        chaincode_id = chaincode_pb2.ChaincodeID()
+        chaincode_id.name = "cscc"
+
+        chaincode_spec = chaincode_pb2.ChaincodeSpec()
+        chaincode_spec.type = chaincode_pb2.ChaincodeSpec.Type.Value('GOLANG')
+        chaincode_spec.chaincode_id.CopyFrom(chaincode_id)
+        chaincode_spec.input.CopyFrom(chaincode_input)
+
+        extension = chaincode_spec.SerializeToString()
+        channel_header = build_channel_header(
+            common_pb2.HeaderType.Value('ENDORSER_TRANSACTION'),
+            tx_context.tx_id,
+            self.name,
+            current_timestamp(),
+            tx_context.epoch,
+            extension=extension
+        )
+
+        creator = create_serialized_identity(tx_context.user)
+        header = build_header(creator, channel_header, tx_context.nonce)
+        proposal = build_cc_proposal(
+            chaincode_spec,
+            header,
+            {})
+
+        try:
+            responses = send_transaction_proposal(
+                proposal,
+                header,
+                tx_context,
+                request['targets'])
+        except Exception as e:
+            raise IOError("fail to send transanction proposal", e)
+
+        q = Queue(1)
+        for r in responses:
+            r.subscribe(on_next=lambda x: q.put(x),
+                        on_error=lambda x: q.put(x))
+            res = q.get(timeout=5)
+
+            result = True and (res.response.status == 200)
+
+        _logger.info("The return status is:", result)
+        return result
 
 
 def create_system_channel(client):
