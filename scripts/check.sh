@@ -10,9 +10,6 @@ docker version
 echo
 docker-compose -v
 
-# install tox
-pip install tox
-
 # pull fabric images
 ARCH=x86_64
 BASEIMAGE_RELEASE=0.3.1
