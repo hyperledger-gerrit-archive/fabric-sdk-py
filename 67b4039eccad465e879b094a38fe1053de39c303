@@ -1,0 +1,10 @@
+Code-Review+1: Qiang Wang <wqiang0723@gmail.com>
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+1: david dornseifer <david.paul.dornseifer@sap.com>
+Code-Review+2: Kai Chen <281165273@qq.com>
+Code-Review+2: Baohua Yang <yangbaohua@gmail.com>
+Submitted-by: Baohua Yang <yangbaohua@gmail.com>
+Submitted-at: Sat, 04 Nov 2017 14:06:18 +0000
+Reviewed-on: https://gerrit.hyperledger.org/r/15159
+Project: fabric-sdk-py
+Branch: refs/heads/master
