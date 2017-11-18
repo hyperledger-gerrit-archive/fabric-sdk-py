@@ -42,6 +42,7 @@ class E2eTest(unittest.TestCase):
         self.compose_file_path = \
             test_network['docker']['compose_file_tls']
 
+        self.client = Client()
         self.start_test_env()
 
     def tearDown(self):
@@ -59,18 +60,17 @@ class E2eTest(unittest.TestCase):
 
     def create_channel(self):
 
-        client = Client()
-        client.state_store = FileKeyValueStore(
+        self.client.state_store = FileKeyValueStore(
             self.kv_store_path + 'build-channel')
 
         logger.info("start to create channel")
         request = build_channel_request(
-            client,
+            self.client,
             self.channel_tx,
             self.channel_name)
 
         q = Queue(1)
-        response = client.create_channel(request)
+        response = self.client.create_channel(request)
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
 
@@ -79,29 +79,29 @@ class E2eTest(unittest.TestCase):
         self.assertEqual(status.status, 200)
 
         logger.info("successfully create the channel: %s", self.channel_name)
-        client.state_store = None
+        self.client.new_channel(self.channel_name)
+        self.client.state_store = None
 
     def join_channel(self):
 
         # sleep 5 seconds for channel created
         time.sleep(5)
-        client = Client()
-        client.state_store = FileKeyValueStore(
+        self.client.state_store = FileKeyValueStore(
             self.kv_store_path + 'join-channel')
 
-        channel = client.new_channel(self.channel_name)
+        channel = self.client.get_channel(self.channel_name)
 
         logger.info("start to join channel")
         orgs = ["org1.example.com", "org2.example.com"]
         for org in orgs:
-            request = build_join_channel_req(org, channel, client)
+            request = build_join_channel_req(org, channel, self.client)
+            # assert(channel.join_channel(request))
             assert(request)
-            # result = True and channel.join_channel(request)
             logger.info("peers in org: %s join channel: %",
                         org, self.channel_name)
 
         logger.info("joining channel tested succefully")
-        client.state_store = None
+        self.client.state_store = None
 
     def install_chaincode(self):
 

@@ -244,10 +244,11 @@ def send_transaction_proposal(proposal, header, tx_context,
     signed_proposal = sign_proposal(
         tx_context, proposal)
 
-    send_executions = [peer.send_proposal(signed_proposal, scheduler)[0]
+    send_executions = [peer.send_proposal(signed_proposal, scheduler)
                        for peer in peers]
 
-    return send_executions
+    return rx.Observable.merge(send_executions).to_iterable()\
+        .map(lambda responses: (responses, proposal, header))
 
 
 def send_transaction(orderers, tran_req, tx_context, scheduler=None):

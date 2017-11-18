@@ -6,7 +6,6 @@
 
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.peer import Peer
-from hfc.fabric.eventhub import EventHub
 from hfc.fabric.transaction.tx_context import TXContext
 from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest
 from hfc.util.crypto.crypto import ecies
@@ -106,7 +105,6 @@ def build_join_channel_req(org, channel, client):
         pass
 
     client._crypto_suite = ecies()
-    all_ehs = []
     request = {}
     tx_prop_req = TXProposalRequest()
 
@@ -133,26 +131,19 @@ def build_join_channel_req(org, channel, client):
     # create the peer
     org_admin = get_peer_org_admin(client, org)
     client.tx_context = TXContext(org_admin, ecies(), tx_prop_req)
-
+    tx_id = client.tx_context.tx_id
     peer_config = test_network[org]["peers"]['peer0']
     ca_root = peer_config["tls_cacerts"]
     with open(ca_root, 'rb') as f:
         pem = f.read()
-    peer = Peer(pem=pem, opts=None)
-
-    # connect the peer
-    eh = EventHub()
-    event = peer_config['grpc_event_endpoint']
-    opts = {'pem': pem, 'hostname': peer_config['server_hostname']}
-
-    tx_id = client.tx_context.tx_id
-    eh.set_peer_addr(event)
-    eh.connect()
-    eh.register_block_event(block_event_callback)
-    all_ehs.append(eh)
+    endpoint = peer_config['grpc_request_endpoint']
+    peer_opts = (('grpc.ssl_target_name_override',
+                  peer_config['server_hostname']),)
+    peer = Peer(pem=pem, endpoint=endpoint, opts=peer_opts)
 
     request["targets"] = [peer]
     request["block"] = genesis_block
     request["tx_id"] = tx_id
+    request["transient_map"] = {}
 
     return request

@@ -12,16 +12,16 @@ import tarfile
 import rx
 
 from hfc.fabric.transaction.tx_proposal_request import \
-    CC_INSTALL, CC_TYPE_GOLANG
+    CC_INSTALL, CC_TYPE_GOLANG, CC_INVOKE, CC_INSTANTIATE, CC_UPGRADE
 from hfc.protos.common import common_pb2
 from hfc.protos.orderer import ab_pb2
 from hfc.protos.peer import chaincode_pb2, proposal_pb2
-from hfc.protos.utils import create_seek_info, create_chaincode_spec, \
+from hfc.protos.utils import create_seek_info, create_cc_spec, \
     create_seek_payload, create_envelope
 from hfc.util import utils
 from hfc.util.utils import proto_str, current_timestamp, proto_b, \
     build_header, build_channel_header, build_cc_proposal, \
-    create_serialized_identity, send_transaction_proposal
+    send_transaction_proposal
 
 if sys.version_info < (3, 0):
     from Queue import Queue
@@ -291,11 +291,6 @@ class Channel(object):
                 cc_deployment_spec.code_package = \
                     tx_context.tx_prop_req.packaged_cc
 
-        cc_deployment_spec.effective_date.seconds = \
-            tx_context.tx_prop_req.effective_date.seconds
-        cc_deployment_spec.effective_date.nanos = \
-            tx_context.tx_prop_req.effective_date.nanos
-
         channel_header_extension = proposal_pb2.ChaincodeHeaderExtension()
         channel_header_extension.chaincode_id.name = \
             proto_str("lscc")
@@ -328,6 +323,120 @@ class Channel(object):
 
         return rx.Observable.merge(send_executions).to_iterable() \
             .map(lambda responses: (responses, proposal, header))
+
+    def send_deploy_proposal(self, tx_context, peers):
+        """Send instatiate chaincode proposal.
+
+        Args:
+            tx_context: transaction context
+            peers: peers to send this proposal
+
+        Return: True in success False in failure
+        """
+        if not peers:
+            peers = self.peers.values()
+        if not tx_context:
+            raise Exception("The transaction context is null.")
+
+        return self._send_cc_proposal(tx_context, CC_INSTANTIATE, peers)
+
+    def send_upgrade_proposal(self, tx_context, peers):
+        """ The policy must the one from instantiate"""
+
+        if not peers:
+            peers = self.peers.values()
+        if not tx_context:
+            raise Exception("The transaction context is null.")
+
+        return self._send_cc_proposal(tx_context, CC_UPGRADE, peers)
+
+    def _send_cc_proposal(self, tx_context, command, peers):
+
+        args = []
+        request = tx_context.tx_prop_req
+
+        for arg in request.args:
+            args.append(proto_b(arg))
+
+        # construct the deployment spec
+        cc_id = chaincode_pb2.ChaincodeID()
+        cc_id.path = request.cc_path
+        cc_id.name = request.cc_name
+        cc_id.version = request.cc_version
+
+        cc_input = chaincode_pb2.ChaincodeInput()
+        cc_input.args.extend(args)
+        cc_spec = create_cc_spec(cc_input, cc_id, CC_TYPE_GOLANG)
+
+        cc_dep_spec = chaincode_pb2.ChaincodeDeploymentSpec()
+        cc_dep_spec.chaincode_spec.CopyFrom(cc_spec)
+        cc_dep_spec.effective_date.seconds = \
+            tx_context.tx_prop_req.effective_date.seconds
+        cc_dep_spec.effective_date.nanos = \
+            tx_context.tx_prop_req.effective_date.nanos
+
+        # construct the invoke spec
+        # TODO: if the policy not provided, new one should be built.
+        if request.cc_endorsement_policy:
+            policy = request.cc_endorsement_policy
+        else:
+            policy = ''
+
+        invoke_input = chaincode_pb2.ChaincodeInput()
+        invoke_input.args.extend(
+            [proto_b(command),
+             proto_b(self.name),
+             cc_dep_spec.SerializeToString(),
+             policy,
+             proto_b('escc'),
+             proto_b('vscc')])
+
+        invoke_cc_id = chaincode_pb2.ChaincodeID()
+        invoke_cc_id.name = proto_str('lscc')
+
+        cc_invoke_spec = chaincode_pb2.ChaincodeInvocationSpec()
+        cc_invoke_spec.chaincode_spec.CopyFrom(create_cc_spec(invoke_input,
+                                               invoke_cc_id,
+                                               CC_TYPE_GOLANG))
+
+        extension = proposal_pb2.ChaincodeHeaderExtension()
+        extension.chaincode_id.name = proto_str('lscc')
+        channel_header = build_channel_header(
+            common_pb2.ENDORSER_TRANSACTION,
+            tx_context.tx_id,
+            self.name,
+            current_timestamp(),
+            epoch=0,
+            extension=extension.SerializeToString()
+            )
+
+        header = build_header(tx_context.identity,
+                              channel_header,
+                              tx_context.nonce)
+        proposal = build_cc_proposal(
+            cc_invoke_spec,
+            header,
+            request.transient_map)
+
+        try:
+            responses = send_transaction_proposal(
+                proposal,
+                header,
+                tx_context,
+                peers)
+        except Exception as e:
+            raise IOError("fail to send transanction proposal", e)
+
+        q = Queue(1)
+        result = True
+        for r in responses[0]:
+            r.subscribe(on_next=lambda x: q.put(x),
+                        on_error=lambda x: q.put(x))
+            res, _ = q.get(timeout=5)
+
+            result = result and (res.response.status == 200)
+
+        return result
 
     def _build_channel_header(type, tx_id, channel_id,
                               timestamp, epoch=0, extension=None):
@@ -521,27 +630,34 @@ class Channel(object):
             raise ValueError(err_msg)
 
         tx_context = self._client.tx_context
-        chaincode_spec = create_chaincode_spec(
-            request['block'],
-            'cscc',
-            "GOLANG")
 
-        extension = chaincode_spec.SerializeToString()
+        block_bytes = request['block']
+        chaincode_input = chaincode_pb2.ChaincodeInput()
+        chaincode_input.args.extend([block_bytes, proto_b('JoinChan')])
+        chaincode_id = chaincode_pb2.ChaincodeID()
+        chaincode_id.name = proto_str('cscc')
+
+        cc_spec = create_cc_spec(chaincode_input, chaincode_id, 'GOLANG')
+        cc_invoke_spec = chaincode_pb2.ChaincodeInvocationSpec()
+        cc_invoke_spec.chaincode_spec.CopyFrom(cc_spec)
+
+        extension = proposal_pb2.ChaincodeHeaderExtension()
+        extension.chaincode_id.name = proto_str('cscc')
         channel_header = build_channel_header(
             common_pb2.HeaderType.Value('ENDORSER_TRANSACTION'),
             tx_context.tx_id,
             self.name,
             current_timestamp(),
             tx_context.epoch,
-            extension=extension
-        )
+            extension=extension.SerializeToString())
 
-        creator = create_serialized_identity(tx_context.user)
-        header = build_header(creator, channel_header, tx_context.nonce)
+        header = build_header(tx_context.identity,
+                              channel_header,
+                              tx_context.nonce)
         proposal = build_cc_proposal(
-            chaincode_spec,
+            cc_invoke_spec,
             header,
-            {})
+            request['transient_map'])
 
         try:
             responses = send_transaction_proposal(
@@ -553,14 +669,96 @@ class Channel(object):
             raise IOError("fail to send transanction proposal", e)
 
         q = Queue(1)
-        for r in responses:
+        result = True
+        for r in responses[0]:
             r.subscribe(on_next=lambda x: q.put(x),
                         on_error=lambda x: q.put(x))
-            res = q.get(timeout=5)
+            res, _ = q.get(timeout=5)
+            result = result and (res.response.status == 200)
+        return result
 
-            result = True and (res.response.status == 200)
+    def send_tx_proposal(self, peers, tx_context):
+        """
+        Invoke the chaincode
 
-        _logger.info("The return status is:", result)
+        Send a transaction proposal to one or more endorser without
+        creating a channel.
+
+        Args:
+        peers: the pees to send this proposal
+                 if it is None the channel peers list will be used.
+        channel_id(required): channel id
+        client(required): client context
+
+        Return: True in success or False in failure.
+
+        """
+        if not peers:
+            peers = self.peers.values()
+
+        return Channel._send_tx_proposal(self.name, tx_context, peers)
+
+    @staticmethod
+    def _send_tx_proposal(channel_id, tx_context, peers):
+
+        request = tx_context.tx_prop_req
+
+        args = []
+        if request.fcn:
+            args.append(request.fcn)
+        else:
+            args.append(CC_INVOKE)
+
+        for arg in request.args:
+            args.append(proto_b(arg))
+
+        cc_id = chaincode_pb2.ChaincodeID()
+        cc_id.path = request.cc_path
+        cc_id.name = request.cc_name
+        cc_id.version = request.cc_version
+
+        cc_input = chaincode_pb2.ChaincodeInput()
+        cc_input.args.extend(args)
+
+        cc_spec = chaincode_pb2.ChaincodeSpec()
+        cc_spec.type = chaincode_pb2.ChaincodeSpec.Type.Value(CC_TYPE_GOLANG)
+        cc_spec.chaincode_id.CopyFrom(cc_id)
+        cc_spec.input.CopyFrom(cc_input)
+
+        cc_invoke_spec = chaincode_pb2.ChaincodeInvocationSpec()
+        cc_invoke_spec.chaincode_spec.CopyFrom(cc_spec)
+        channel_header_extension = proposal_pb2.ChaincodeHeaderExtension()
+        channel_header_extension.chaincode_id.name = proto_str(request.cc_name)
+        channel_header = build_channel_header(
+            common_pb2.ENDORSER_TRANSACTION,
+            tx_context.tx_id,
+            channel_id,
+            current_timestamp(),
+            tx_context.epoch,
+            channel_header_extension.SerializeToString())
+
+        header = build_header(tx_context.identity,
+                              channel_header,
+                              tx_context.nonce)
+        proposal = build_cc_proposal(cc_invoke_spec, header,
+                                     request.transient_map)
+
+        try:
+            responses = send_transaction_proposal(
+                proposal,
+                header,
+                tx_context,
+                peers)
+        except Exception as e:
+            raise IOError("fail to send transactoin proposal.", e)
+
+        q = Queue(1)
+        result = True
+        for r in responses[0]:
+            r.subscribe(on_next=lambda x: q.put(x),
+                        on_error=lambda x: q.put(x))
+            res, _ = q.get(timeout=5)
+            result = result and (res.response.status == 200)
         return result
 
 
