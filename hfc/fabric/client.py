@@ -15,7 +15,7 @@
 
 import logging
 
-from hfc.fabric.channel.channel import Channel, create_system_channel
+from hfc.fabric.channel.channel import Channel, create_app_channel
 from hfc.protos.common import common_pb2, configtx_pb2
 from hfc.util import utils
 
@@ -322,6 +322,6 @@ class Client(object):
         Returns: A set of proposal_response
 
         """
-        sys_channel = create_system_channel(self)
+        app_channel = create_app_channel(self, "businesschannel")
         _logger.debug("context {}".format(tx_context))
-        return sys_channel.send_install_proposal(tx_context, peers, scheduler)
+        return app_channel.send_install_proposal(tx_context, peers, scheduler)

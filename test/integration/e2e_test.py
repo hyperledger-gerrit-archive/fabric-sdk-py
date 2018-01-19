@@ -100,7 +100,7 @@ class E2eTest(unittest.TestCase):
             logger.info("peers in org: %s join channel: %",
                         org, self.channel_name)
 
-        logger.info("joining channel tested succefully")
+        logger.info("joining channel tested successfully")
         client.state_store = None
 
     def install_chaincode(self):
