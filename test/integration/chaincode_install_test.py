@@ -2,7 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import sys
 import unittest
 from time import sleep
 
@@ -17,10 +16,6 @@ from hfc.fabric.transaction.tx_proposal_request import create_tx_prop_req, \
     CC_INSTALL, CC_TYPE_GOLANG
 from hfc.util.crypto.crypto import ecies
 
-if sys.version_info < (3, 0):
-    from Queue import Queue
-else:
-    from queue import Queue
 
 CC_PATH = 'github.com/example_cc'
 CC_NAME = 'example_cc'
@@ -45,7 +40,6 @@ class ChaincodeInstallTest(BaseTestCase):
         self.peer0_org2_tls_hostname = E2E_CONFIG['test-network'][
             'org2.example.com']['peers']['peer0']['server_hostname']
 
-    @unittest.skip("chaincode install needs a env with channel create+join")
     def test_install_chaincode_success(self):
         """
         Test a chaincode installation success.
@@ -65,19 +59,10 @@ class ChaincodeInstallTest(BaseTestCase):
                                            CC_NAME, CC_VERSION)
         tx_context = create_tx_context(org1_admin, crypto, tran_prop_req)
 
-        queue = Queue(1)
-
         sleep(5)
         response = self.client.send_install_proposal(tx_context, [peer0_org1])
 
-        response.subscribe(
-            on_next=lambda x: queue.put(x),
-            on_error=lambda x: queue.put(x)
-        )
-
-        res = queue.get(timeout=5)
-        proposal_response, _ = res[0][0]
-        self.assertEqual(proposal_response.response.status, 200)
+        assert(response)
 
 
 if __name__ == '__main__':

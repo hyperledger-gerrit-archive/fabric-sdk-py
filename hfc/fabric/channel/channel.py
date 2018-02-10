@@ -9,7 +9,6 @@ import random
 import sys
 import tarfile
 
-import rx
 
 from hfc.fabric.transaction.tx_proposal_request import \
     CC_INSTALL, CC_TYPE_GOLANG, CC_INSTANTIATE, CC_UPGRADE
@@ -334,13 +333,21 @@ class Channel(object):
         proposal = utils.build_cc_proposal(
             cci_spec, header,
             tx_context.tx_prop_req.transient_map)
-        signed_proposal = utils.sign_proposal(tx_context, proposal)
 
-        send_executions = [peer.send_proposal(signed_proposal, scheduler)
-                           for peer in targets]
+        responses = send_transaction_proposal(proposal,
+                                              header,
+                                              tx_context,
+                                              targets)
+        result = True
+        q = Queue(1)
+        for r in responses:
+            r.subscribe(on_next=lambda x: q.put(x),
+                        on_error=lambda x: q.put(x))
+            res = q.get(timeout=5)
+            response = res[0]
+            result = result and (response.response.status == 200)
 
-        return rx.Observable.merge(send_executions).to_iterable() \
-            .map(lambda responses: (responses, proposal, header))
+        return result
 
     def _build_channel_header(type, tx_id, channel_id,
                               timestamp, epoch=0, extension=None):

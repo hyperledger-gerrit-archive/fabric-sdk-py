@@ -63,8 +63,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
 
         org1 = 'org1.example.com'
         crypto = ecies()
-        org1_admin = get_peer_org_user(org1, 'Admin',
-                                       self.client.state_store)
+        org1_admin = get_peer_org_user(org1, "Admin", self.client.state_store)
         tx_context_in = create_tx_context(org1_admin,
                                           crypto,
                                           tran_prop_req_in)
@@ -87,10 +86,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
         channel.join_channel(join_req)
 
         res = self.client.send_install_proposal(tx_context_in, [peer])
-        res.subscribe(on_next=lambda x: q.put(x),
-                      on_error=lambda x: q.put(x))
-        status, _ = q.get(timeout=5)[0][0]
-        if status.response.status == 200:
+        if res:
             logger.info("chaincode installed successfully")
 
         time.sleep(5)
