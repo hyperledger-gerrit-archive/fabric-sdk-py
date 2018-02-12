@@ -128,6 +128,7 @@ class ChannelCreateTest(BaseTestCase):
 
         status, _ = q.get(timeout=5)
         self.assertEqual(status.status, 200)
+        print(status.status)
 
     @unittest.skip
     def test_create_channel_with_envelope(self):
