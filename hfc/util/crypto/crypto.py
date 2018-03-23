@@ -251,7 +251,7 @@ class Ecies(Crypto):
             return False
         try:
             public_key.verify(signature, message,
-                    ec.ECDSA(self.sign_hash_algorithm))
+                              ec.ECDSA(self.sign_hash_algorithm))
         except InvalidSignature:
             return False
         except Exception as e:
