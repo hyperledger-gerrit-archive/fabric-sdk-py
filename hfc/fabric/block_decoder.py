@@ -293,7 +293,7 @@ def timestamp_to_date(timestamp):
     # WARNING: this will break on Windows because of the fromtimestamp()
     # restriction of values by C `localtime()` or `gmtime()` calls.
     millis = timestamp.seconds * 1000 + timestamp.nanos / 1000000
-    date = datetime.datetime.fromtimestamp(millis/1e3)
+    date = datetime.datetime.utcfromtimestamp(millis/1e3)
     return date.strftime("%Y-%m-%d %H:%M:%S")
 
 
