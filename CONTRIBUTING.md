@@ -29,7 +29,7 @@ In brief, if you want to contribute, create or find some `To Do` item, and assig
 
 ## Code Commit Steps
 
-The project employs [Gerrit](https://gerrit.hyperledger.org) as the code commit/review system. More details about Gerrit can be learned from the [Hyperledger Fabric Gerrit Doc](https://github.com/hyperledger/fabric/blob/master/docs/Gerrit/).
+The project employs [Gerrit](https://gerrit.hyperledger.org) as the code commit/review system. More details about Gerrit can be learned from the Hyperledger Fabric Gerrit Doc.
 
 *Before committing code, please go to [Jira](https://jira.hyperledger.org/secure/RapidBoard.jspa?rapidView=85) to create a new task or check if there's related existing one, then assign yourself as the assignee. Notice each task will get a Jira number like [FAB-3082](https://jira.hyperledger.org/browse/FAB-3082).
 
