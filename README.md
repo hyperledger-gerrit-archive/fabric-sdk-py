@@ -73,7 +73,7 @@ See [Change Log](CHANGELOG.md).
 
 ## Wiki
 
-More information, please see the project [wiki](wiki.hyperledger.org/projects/fabric-sdk-py).
+More information, please see the project [wiki](https://wiki.hyperledger.org/projects/fabric-sdk-py).
 
 ## About Hyperledger Project
 
