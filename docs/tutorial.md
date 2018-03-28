@@ -33,7 +33,7 @@ $ docker-compose -f test/fixtures/docker-compose-2orgs-4peers-tls.yaml up
 
 Then you'll have 2 orgs (org1.example.com; org2.example.com) with 2 peers in each one and one orderer (orderer.example.com)
 
-If you want to understand the fabric network and how to change the network configuration, feel free to follow the byfn tutorial, from [crypto-generator section](http://hyperledger-fabric.readthedocs.io/en/release/build_network.html#crypto-generator) to [start-the-network section](http://hyperledger-fabric.readthedocs.io/en/release/build_network.html#start-the-network).
+If you want to understand the fabric network and how to change the network configuration, feel free to follow the byfn tutorial, from crypto-generator section to start-the-network section.
 service on the yaml file either.
 
 ### Create Connection Profile
