@@ -104,7 +104,7 @@ class ClientTest(unittest.TestCase):
                 "OrdererOrg": {
                 }
             },
-            "orderers": {
+            "_orderers": {
                 "orderer1": {
                 }
             },

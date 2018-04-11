@@ -248,6 +248,14 @@ class User(object):
         except Exception as e:
             raise IOError("Cannot deserialize the user", e)
 
+    def get_attrs(self):
+        return ",".join("{}={}"
+                        .format(k, getattr(self, k))
+                        for k in self.__dict__.keys())
+
+    def __str__(self):
+        return "[{}:{}]".format(self.__class__.__name__, self.get_attrs())
+
 
 def validate(user):
     """ Check the user.
@@ -296,11 +304,15 @@ def create_user(name, org, state_store, msp_id, key_path, cert_path):
 
     """
 
+    # print('----')
+    # print(name, org, state_store, msp_id, key_path, cert_path)
     with open(key_path, 'rb') as key:
         key_pem = key.read()
+        # print(key_pem)
 
     with open(cert_path, 'rb') as cert:
         cert_pem = cert.read()
+        # print(cert_pem)
 
     private_key = load_pem_private_key(key_pem, None, default_backend())
     enrollment = Enrollment(private_key, cert_pem)
