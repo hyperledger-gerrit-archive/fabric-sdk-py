@@ -80,7 +80,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
         # join channel
         channel = self.client.new_channel(self.channel_name)
         join_req = build_join_channel_req(org1, channel, self.client)
-        channel.join_channel(join_req)
+        channel.channel_join(join_req)
         time.sleep(5)
 
         # install chain code
@@ -106,7 +106,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
 
         tran_req = build_tx_req(res)
 
-        res = send_transaction(channel.orderers, tran_req, tx_context)
+        res = send_transaction(channel._orderers, tran_req, tx_context)
         time.sleep(5)
 
         q = Queue(1)

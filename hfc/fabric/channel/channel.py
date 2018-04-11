@@ -74,7 +74,7 @@ class Channel(object):
         will broadcast requests to the rest of the orderer network. Or if
         the application does not trust the orderer nodes, it can choose to
         use more than one by adding them to the channel instance. And all
-        APIs concerning the orderer will broadcast to all orderers
+        APIs concerning the orderer will broadcast to all _orderers
         simultaneously.
 
         Args:
@@ -112,7 +112,7 @@ class Channel(object):
 
     @property
     def orderers(self):
-        """Get orderers of a channel.
+        """Get _orderers of a channel.
 
         Returns: The orderer list on the channel
 
@@ -469,48 +469,6 @@ class Channel(object):
         else:
             raise ValueError('Currently only support install GOLANG chaincode')
 
-    def get_genesis_block(self):
-        """ get the genesis block of the channel.
-        Return: the genesis block in success or None in fail.
-        """
-        _logger.info("get genesis block - start")
-
-        orderer = self._get_random_orderer()
-
-        tx_context = self._client.tx_context
-
-        seek_info = create_seek_info(0, 0)
-        seek_info_header = build_channel_header(
-            common_pb2.HeaderType.Value('DELIVER_SEEK_INFO'),
-            tx_context.tx_id,
-            self.name,
-            current_timestamp(),
-            tx_context.epoch)
-
-        seek_header = build_header(
-            tx_context.identity,
-            seek_info_header,
-            tx_context.nonce)
-
-        seek_payload_bytes = create_seek_payload(seek_header, seek_info)
-        sig = tx_context.sign(seek_payload_bytes)
-
-        envelope = create_envelope(sig, seek_payload_bytes)
-        q = Queue(1)
-        response = orderer.delivery(envelope)
-        response.subscribe(on_next=lambda x: q.put(x),
-                           on_error=lambda x: q.put(x))
-
-        res, _ = q.get(timeout=5)
-
-        if res.block is None or res.block == '':
-            _logger.error("fail to get genesis block")
-            return None
-
-        _logger.info("get genesis block successfully, block=%s",
-                     res.block.header)
-        return res.block
-
     def join_channel(self, request):
         """
         To join the peer to a channel.
@@ -520,7 +478,7 @@ class Channel(object):
         Return:
             True in sucess or False in failure
         """
-        _logger.debug('join_channel - start')
+        _logger.debug('channel_join - start')
 
         err_msg = None
         if(not request):
@@ -536,7 +494,7 @@ class Channel(object):
             err_msg = "Missing transaction id parameter"
 
         if err_msg:
-            _logger.error('join_channel error: {}'.format(err_msg))
+            _logger.error('channel_join error: {}'.format(err_msg))
             raise ValueError(err_msg)
 
         tx_context = self._client.tx_context

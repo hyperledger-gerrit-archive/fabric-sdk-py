@@ -267,7 +267,7 @@ def send_transaction(orderers, tran_req, tx_context, scheduler=None):
     Args:
         scheduler: scheduler
         tx_context: transaction context
-        orderers: orderers
+        orderers: _orderers
         tran_req (TransactionRequest): The transaction object
 
     Returns:

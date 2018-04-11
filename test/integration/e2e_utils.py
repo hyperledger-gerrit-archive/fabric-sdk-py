@@ -100,8 +100,6 @@ def build_join_channel_req(org, channel, client):
 
         pass
 
-    client._crypto_suite = ecies()
-    request = {}
     tx_prop_req = TXProposalRequest()
 
     # add the orderer
@@ -111,13 +109,13 @@ def build_join_channel_req(org, channel, client):
     orderer = Orderer(endpoint=endpoint, tls_ca_cert_file=ca_root_path,
                       opts=(('grpc.ssl_target_name_override',
                              'orderer.example.com'),))
-    channel.add_orderer(orderer)
-
     # get the genesis block
     orderer_admin = get_orderer_org_user(state_store=client.state_store)
     tx_context = TXContext(orderer_admin, ecies(), tx_prop_req)
-    client.tx_context = tx_context
-    genesis_block = channel.get_genesis_block().SerializeToString()
+    # client.tx_context = tx_context
+    genesis_block = orderer.get_genesis_block(tx_context, channel.name).SerializeToString()
+    # TODO: delete this one for debugging
+    print(genesis_block)
 
     # create the peer
     org_admin = get_peer_org_user(org, "Admin", client.state_store)
@@ -144,9 +142,11 @@ def build_join_channel_req(org, channel, client):
     all_ehs.append(eh)
     """
 
-    request["targets"] = [peer]
-    request["block"] = genesis_block
-    request["tx_id"] = tx_id
-    request["transient_map"] = {}
+    request = {
+        "targets": [peer],
+        "block": genesis_block,
+        "tx_id": tx_id,
+        "transient_map": {}
+    }
 
     return request

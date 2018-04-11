@@ -15,13 +15,15 @@
 
 import logging
 import json
+import sys
 
 
-from hfc.fabric.transaction.tx_context import TXContext
 from hfc.fabric.channel.channel import Channel, create_app_channel
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.peer import Peer
 from hfc.fabric.organization import create_org
+from hfc.fabric.transaction.tx_context import TXContext
+from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest
 from hfc.protos.common import common_pb2, configtx_pb2
 from hfc.util import utils
 from hfc.util.crypto.crypto import Ecies
@@ -32,6 +34,11 @@ from hfc.util.utils import extract_channel_config
 from hfc.fabric.config.default import DEFAULT
 
 assert DEFAULT
+
+if sys.version_info < (3, 0):
+    from Queue import Queue
+else:
+    from queue import Queue
 
 _logger = logging.getLogger(__name__ + ".client")
 
@@ -44,10 +51,9 @@ class Client(object):
 
     def __init__(self, net_profile=None):
         """ Construct client"""
-        self._channels = dict()
         self._crypto_suite = None
         self._tx_context = None
-        self.kv_store_path = None  # TODO: fix this as private later
+        self.kv_store_path = None  # TODO: fix t.his as private later
         self._state_store = None
         self._is_dev_mode = False
         self.network_info = dict()
@@ -66,6 +72,8 @@ class Client(object):
     def init_with_net_profile(self, profile_path='network.json'):
         """
         Load the connection profile from external file to network_info.
+
+        Init the handlers for orgs, peers, orderers, ca nodes
 
         :param profile_path: The connection profile file path
         :return:
@@ -97,7 +105,7 @@ class Client(object):
         for name in orderers:
             orderer = Orderer(name=name)
             orderer.init_with_bundle(orderers[name])
-            self.orderers[name] = orderer
+            self._orderers[name] = orderer
 
         # Init peer nodes
         peers = self.get_net_info('peers')
@@ -125,8 +133,8 @@ class Client(object):
         :param name:  Name of the orderer node.
         :return: The orderer instance or None.
         """
-        if name in self.orderers:
-            return self.orderers[name]
+        if name in self._orderers:
+            return self._orderers[name]
         else:
             return None
 
@@ -180,9 +188,9 @@ class Client(object):
     @property
     def orderers(self):
         """
-        Get the orderers in the network.
+        Get the _orderers in the network.
 
-        :return: orderers as dict
+        :return: _orderers as dict
         """
         return self._orderers
 
@@ -205,7 +213,7 @@ class Client(object):
         return self._CAs
 
     def new_channel(self, name):
-        """Init a channel instance with given name.
+        """Create a channel handler instance with given name.
 
         Args:
             name (str): The name of the channel.
@@ -220,7 +228,7 @@ class Client(object):
         return self._channels[name]
 
     def get_channel(self, name):
-        """Get a channel instance.
+        """Get a channel handler instance.
 
         Args:
             name (str): The name of the channel.
@@ -231,27 +239,33 @@ class Client(object):
         """
         return self._channels.get(name, None)
 
-    def create_channel(self, orderer_name, channel, creator, tx):
+    def channel_create(self, orderer_name, channel_name, requester, tx):
         """
-        Create a channel
+        Create a channel, send request to orderer, and check the response
+
         :param orderer_name: Name of orderer to send request to
-        :param channel: Name of channel to create
-        :param creator: Name of creator
+        :param channel_name: Name of channel to create
+        :param requester: Name of creator
         :param tx: Path to the new channel tx file
-        :return:
+        :return: True (creation succeeds) or False (creation failed)
         """
+        if self.get_channel(channel_name):
+            logging.warning("channel {} already existed when creating".format(
+                channel_name))
+            return True
+
         orderer = self.get_orderer(orderer_name)
         if not orderer:
             logging.error("No orderer_name instance found with name {}".format(
                 orderer_name))
-            return None
+            return False
 
         with open(tx, 'rb') as f:
             envelope = f.read()
             config = extract_channel_config(envelope)
 
         # convert envelope to config
-        self.tx_context = TXContext(creator, Ecies(), {})
+        self.tx_context = TXContext(requester, Ecies(), {})
         tx_id = self.tx_context.tx_id
         nonce = self.tx_context.nonce
         signatures = []
@@ -265,9 +279,96 @@ class Client(object):
             'signatures': signatures,
             'config': config,
             'orderer': orderer,
-            'channel_name': channel
+            'channel_name': channel_name
         }
-        return self._create_channel(request)
+        q = Queue(1)
+        response = self._create_channel(request)
+        response.subscribe(on_next=lambda x: q.put(x),
+                           on_error=lambda x: q.put(x))
+
+        status, _ = q.get(timeout=5)
+        if status.status == 200:
+                self.new_channel(channel_name)
+                return True
+        else:
+            return False
+
+    def channel_join(self, requester, channel_name, peers, orderer_name):
+        """
+        Join a channel.
+        Get genesis block from orderer, then send request to peer
+
+        :param requester: Name of the request sender
+        :param channel_name: Name of channel to create
+        :param peers: List of peers to join to the channel
+        :param orderer_name: Name of orderer to get genesis block from
+
+        :return: True (creation succeeds) or False (creation failed)
+        """
+        channel = self.get_channel(channel_name)
+        if not channel:
+            logging.warning("channel {} not existed when join".format(
+                channel_name))
+            return False
+
+        orderer = self.get_orderer(orderer_name)
+        if not orderer:
+            logging.warning("orderer {} not existed when channel join".format(
+                orderer_name))
+            return False
+
+        tx_prop_req = TXProposalRequest()
+
+        # add the orderer
+        orderer_config = test_network['orderer']
+        endpoint = orderer_config['grpc_endpoint']
+        ca_root_path = orderer_config['tls_cacerts']
+        orderer = Orderer(endpoint=endpoint, tls_ca_cert_file=ca_root_path,
+                          opts=(('grpc.ssl_target_name_override',
+                                 'orderer.example.com'),))
+        channel.add_orderer(orderer)
+
+        # get the genesis block
+        orderer_admin = get_orderer_org_user(state_store=client.state_store)
+        tx_context = TXContext(orderer_admin, ecies(), tx_prop_req)
+        # client.tx_context = tx_context
+        genesis_block = orderer.get_genesis_block(tx_context,
+                                                  channel.name).SerializeToString()
+        # TODO: delete this one for debugging
+        print(genesis_block)
+
+        # create the peer
+        org_admin = get_peer_org_user(org, "Admin", client.state_store)
+        client.tx_context = TXContext(org_admin, ecies(), tx_prop_req)
+        tx_id = client.tx_context.tx_id
+
+        peer_config = test_network[org]["peers"]['peer0']
+        ca_root = peer_config["tls_cacerts"]
+
+        endpoint = peer_config["grpc_request_endpoint"]
+        opts = (('grpc.ssl_target_name_override',
+                 peer_config['server_hostname']),)
+        peer = Peer(endpoint=endpoint, tls_cacerts=ca_root, opts=opts)
+
+        """
+        # connect the peer
+        eh = EventHub()
+        event = peer_config['grpc_event_endpoint']
+
+        tx_id = client.tx_context.tx_id
+        eh.set_peer_addr(event)
+        eh.connect()
+        eh.register_block_event(block_event_callback)
+        all_ehs.append(eh)
+        """
+
+        request = {
+            "targets": [peer],
+            "block": genesis_block,
+            "tx_id": tx_id,
+            "transient_map": {}
+        }
+
 
     def _create_channel(self, request):
         """Calls the orderer to start building the new channel.

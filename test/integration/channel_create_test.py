@@ -33,10 +33,13 @@ class ChannelCreateTest(BaseTestCase):
     def setUp(self):
         super(ChannelCreateTest, self).setUp()
 
+    def tearDown(self):
+        super(ChannelCreateTest, self).tearDown()
+
     def test_channel_create(self):
         time.sleep(5)  # wait the network starts
         q = Queue(1)
-        response = self.client.create_channel('orderer.example.com',
+        response = self.client.channel_create('orderer.example.com',
                                               self.channel_name, self.user,
                                               self.channel_tx)
         response.subscribe(on_next=lambda x: q.put(x),

@@ -13,7 +13,7 @@ import time
 from hfc.fabric.client import Client
 from hfc.util.keyvaluestore import FileKeyValueStore
 
-from test.integration.utils import cli_call
+from test.integration.utils import cli_call, BaseTestCase
 from test.integration.config import E2E_CONFIG
 from test.integration.e2e_utils import build_channel_request, \
     build_join_channel_req
@@ -28,76 +28,51 @@ else:
     from queue import Queue
 
 
-class E2eTest(unittest.TestCase):
+class E2eTest(BaseTestCase):
 
     def setUp(self):
-
-        self.channel_tx = \
-            test_network['channel-artifacts']['channel.tx']
-        self.channel_name = \
-            test_network['channel-artifacts']['channel_id']
-        self.compose_file_path = \
-            test_network['docker']['compose_file_tls']
-        self.client = Client('test/fixtures/network.json')
-
-        self.start_test_env()
+        super(E2eTest, self).setUp()
 
     def tearDown(self):
+        super(E2eTest, self).tearDown()
 
-        self.shutdown_test_env()
+    def channel_create(self):
+        logger.info("E2E: Channel creation start: name={}".format(
+            self.channel_name))
 
-    def start_test_env(self):
+        # By default, self.user is the admin of org1
+        response = self.client.channel_create('orderer.example.com',
+                                              self.channel_name,
+                                              self.user,
+                                              self.channel_tx)
+        self.assertTrue(response)
 
-        cli_call(["docker-compose", "-f", self.compose_file_path, "up", "-d"])
+        logger.info("E2E: Channel creation done: name={}".format(
+            self.channel_name))
 
-    def shutdown_test_env(self):
-
-        cli_call(["docker-compose", "-f", self.compose_file_path, "down"])
-
-    def create_channel(self):
-
-        client = Client('test/fixtures/network.json')
-
-        logger.info("start to create channel")
-        request = build_channel_request(
-            client,
-            self.channel_tx,
-            self.channel_name)
-
-        q = Queue(1)
-        response = client._create_channel(request)
-        response.subscribe(on_next=lambda x: q.put(x),
-                           on_error=lambda x: q.put(x))
-
-        status, _ = q.get(timeout=5)
-
-        self.assertEqual(status.status, 200)
-
-        logger.info("successfully create the channel: %s", self.channel_name)
-        client.state_store = None
-
-    def join_channel(self):
+    def channel_join(self):
 
         # wait for channel created
         time.sleep(5)
-        client = Client('test/fixtures/network.json')
 
-        channel = client.new_channel(self.channel_name)
+        # channel must already exist when to join
+        channel = self.client.get_channel(self.channel_name)
+        self.assertIsNotNone(channel)
 
         logger.info("start to join channel")
         orgs = ["org1.example.com", "org2.example.com"]
         done = True
         for org in orgs:
-            client.state_store = FileKeyValueStore(
+            self.client.state_store = FileKeyValueStore(
                 self.client.kv_store_path + org)
-            request = build_join_channel_req(org, channel, client)
+            request = build_join_channel_req(org, channel, self.client)
             done = done and channel.join_channel(request)
             if done:
                 logger.info("peers in org: %s join channel: %s.",
                             org, self.channel_name)
         if done:
             logger.info("joining channel tested successfully.")
-        client.state_store = None
+        self.client.state_store = None
         assert(done)
 
     def install_chaincode(self):
@@ -122,8 +97,8 @@ class E2eTest(unittest.TestCase):
 
     def test_in_sequence(self):
 
-        self.create_channel()
-        self.join_channel()
+        self.channel_create()
+        self.channel_join()
         self.install_chaincode()
         self.install_chaincode_fail()
         self.instantiate_chaincode()
