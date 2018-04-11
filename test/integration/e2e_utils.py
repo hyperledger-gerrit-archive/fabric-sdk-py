@@ -96,12 +96,6 @@ def build_join_channel_req(org, channel, client):
         return request for joining channel
         """
 
-    def block_event_callback(block):
-
-        pass
-
-    client._crypto_suite = ecies()
-    request = {}
     tx_prop_req = TXProposalRequest()
 
     # add the orderer
@@ -111,19 +105,21 @@ def build_join_channel_req(org, channel, client):
     orderer = Orderer(endpoint=endpoint, tls_ca_cert_file=ca_root_path,
                       opts=(('grpc.ssl_target_name_override',
                              'orderer.example.com'),))
-    channel.add_orderer(orderer)
-
     # get the genesis block
-    orderer_admin = get_orderer_org_user(state_store=client.state_store)
+    # orderer_admin = get_orderer_org_user(state_store=client.state_store)
+    orderer_admin = client.get_user('orderer.example.com', 'Admin')
     tx_context = TXContext(orderer_admin, ecies(), tx_prop_req)
-    client.tx_context = tx_context
-    genesis_block = channel.get_genesis_block().SerializeToString()
+    genesis_block = orderer.get_genesis_block(tx_context, channel.name).SerializeToString()
 
     # create the peer
-    org_admin = get_peer_org_user(org, "Admin", client.state_store)
-    client.tx_context = TXContext(org_admin, ecies(), tx_prop_req)
-    tx_id = client.tx_context.tx_id
+    #org_admin = get_peer_org_user(org, "Admin", client.state_store)
+    #print(org_admin)
 
+    org_admin = client.get_user('org1.example.com', 'Admin')
+    #print(org_admin)
+
+    tx_context = TXContext(org_admin, ecies(), tx_prop_req)
+    print(org, 'Admin', tx_context.identity)
     peer_config = test_network[org]["peers"]['peer0']
     ca_root = peer_config["tls_cacerts"]
 
@@ -144,9 +140,11 @@ def build_join_channel_req(org, channel, client):
     all_ehs.append(eh)
     """
 
-    request["targets"] = [peer]
-    request["block"] = genesis_block
-    request["tx_id"] = tx_id
-    request["transient_map"] = {}
+    request = {
+        "targets": [peer],
+        "block": genesis_block,
+        "transient_map": {},
+        "tx_context": tx_context
+    }
 
     return request

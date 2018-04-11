@@ -15,9 +15,21 @@
 import logging
 
 import rx
+import sys
 
+from hfc.protos.common import common_pb2
 from hfc.protos.orderer import ab_pb2_grpc
+from hfc.protos.utils import create_seek_info, create_seek_payload, \
+    create_envelope
 from hfc.util.channel import create_grpc_channel
+
+from hfc.util.utils import proto_str, current_timestamp, proto_b, \
+    build_header, build_channel_header, build_cc_proposal
+
+if sys.version_info < (3, 0):
+    from Queue import Queue
+else:
+    from queue import Queue
 
 DEFAULT_ORDERER_ENDPOINT = 'localhost:7050'
 
@@ -69,9 +81,50 @@ class Orderer(object):
                        self._ssl_target_name),))
             self._orderer_client = ab_pb2_grpc.AtomicBroadcastStub(
                 self._channel)
-        except KeyError:
+        except KeyError as e:
+            print(e)
             return False
         return True
+
+    def get_genesis_block(self, tx_context, channel_name):
+        """ get the genesis block of the channel.
+        Return: the genesis block in success or None in fail.
+        """
+        _logger.info("get genesis block - start")
+
+        #tx_context = self._client.tx_context
+
+        seek_info = create_seek_info(0, 0)
+        seek_info_header = build_channel_header(
+            common_pb2.HeaderType.Value('DELIVER_SEEK_INFO'),
+            tx_context.tx_id,
+            channel_name,
+            current_timestamp(),
+            tx_context.epoch)
+
+        seek_header = build_header(
+            tx_context.identity,
+            seek_info_header,
+            tx_context.nonce)
+
+        seek_payload_bytes = create_seek_payload(seek_header, seek_info)
+        sig = tx_context.sign(seek_payload_bytes)
+
+        envelope = create_envelope(sig, seek_payload_bytes)
+        q = Queue(1)
+        response = self.delivery(envelope)
+        response.subscribe(on_next=lambda x: q.put(x),
+                           on_error=lambda x: q.put(x))
+
+        res, _ = q.get(timeout=5)
+
+        if res.block is None or res.block == '':
+            _logger.error("fail to get genesis block")
+            return None
+
+        _logger.info("get genesis block successfully, block=%s",
+                     res.block.header)
+        return res.block
 
     def broadcast(self, envelope, scheduler=None):
         """Send an broadcast envelope to orderer.

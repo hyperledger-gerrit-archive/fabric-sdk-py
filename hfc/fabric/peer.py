@@ -65,7 +65,8 @@ class Peer(object):
             self._eh_url = info['eventUrl']
             self._grpc_options = info['grpcOptions']
             self._tls_ca_certs_path = info['tlsCACerts']['path']
-        except KeyError:
+        except KeyError as e:
+            print(e)
             return False
         return True
 
