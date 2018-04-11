@@ -102,9 +102,17 @@ class ClientTest(unittest.TestCase):
         network_info = {
             "organizations": {
                 "OrdererOrg": {
+                    "mspid": "test",
+                    "certificateAuthorities": "test",
+                    "users": {
+                       "Admin": {
+                           "cert": "test",
+                           "private_key": "test"
+                       }
+                    }
                 }
             },
-            "orderers": {
+            "_orderers": {
                 "orderer1": {
                 }
             },
@@ -131,7 +139,7 @@ class ClientTest(unittest.TestCase):
         self.client.init_with_net_profile('test/fixtures/network.json')
         self.assertEqual(self.client.get_net_info('organizations',
                                                   'orderer.example.com',
-                                                  'mspid'), 'OrdererOrg',
+                                                  'mspid'), 'OrdererMSP',
                          "profile not match")
 
 
