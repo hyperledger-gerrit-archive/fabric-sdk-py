@@ -106,7 +106,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
 
         tran_req = build_tx_req(res)
 
-        res = send_transaction(channel.orderers, tran_req, tx_context)
+        res = send_transaction(channel._orderers, tran_req, tx_context)
         time.sleep(5)
 
         q = Queue(1)

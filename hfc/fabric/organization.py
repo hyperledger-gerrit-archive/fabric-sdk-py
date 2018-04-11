@@ -23,6 +23,7 @@ class Organization(object):
         self._name = name
         self._mspid = None
         self._peers = []
+        self._orderers = []
         self._CAs = []
         self._state_store = state_store
         self._users = dict()
@@ -33,18 +34,20 @@ class Organization(object):
         :param info: Dict including all info, e.g., endpoint, grpc option
         :return: True or False
         """
-        try:
-            self._mspid = info['mspid']
+        self._mspid = info['mspid']
+        if 'peers' in info:
             self._peers = info['peers']
-            self._CAs = info['certificateAuthorities']
-            users = info['users']
-            for name in users:
-                user = create_user(name, self._name, self._state_store,
-                                   self._mspid, users[name].get('private_key'),
-                                   users[name].get('cert'))
-                self._users[name] = user
-        except KeyError:
-            return False
+        if 'orderers' in info:
+            self._orderers = info['orderers']
+        self._CAs = info['certificateAuthorities']
+        users = info['users']
+        for name in users:
+            if self._name == 'orderer.example.com':
+                print("create admin for orderer org, name={}".format(name))
+            user = create_user(name, self._name, self._state_store,
+                               self._mspid, users[name].get('private_key'),
+                               users[name].get('cert'))
+            self._users[name] = user
         return True
 
     def get_user(self, name):

@@ -102,7 +102,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         sleep(5)
 
         tran_req = build_tx_req(res)
-        send_transaction(channel.orderers, tran_req, tx_context)
+        send_transaction(channel._orderers, tran_req, tx_context)
         sleep(5)
 
         tx_context_tx = create_tx_context(org1_admin,
@@ -111,7 +111,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         res = channel.send_tx_proposal(tx_context, [org1_peer])
 
         tran_req = build_tx_req(res)
-        response = send_transaction(channel.orderers, tran_req, tx_context_tx)
+        response = send_transaction(channel._orderers, tran_req, tx_context_tx)
         q = Queue(1)
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
