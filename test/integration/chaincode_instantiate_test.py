@@ -107,10 +107,12 @@ class ChaincodeInstantiateTest(BaseTestCase):
         tran_req = build_tx_req(res)
 
         res = send_transaction(channel.orderers, tran_req, tx_context)
-        time.sleep(5)
+        time.sleep(10)
+        print(res)
 
         q = Queue(1)
         res.subscribe(on_next=lambda x: q.put(x),
                       on_error=lambda x: q.put(x))
-        response, _ = q.get(timeout=5)
+        response, _ = q.get(timeout=10)
+        print(response)
         self.assertEqual(response.status, 200)
