@@ -92,7 +92,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         sleep(5)
 
         join_req = build_join_channel_req(org1, self.channel, self.client)
-        self.channel.join_channel(join_req)
+        self.channel.channel_join(join_req)
         sleep(5)
 
         self.client.send_install_proposal(tx_context_install, [self.org1_peer])
@@ -103,7 +103,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         sleep(5)
 
         tran_req = build_tx_req(res)
-        send_transaction(self.channel.orderers, tran_req, tx_context)
+        send_transaction(self.channel._orderers, tran_req, tx_context)
         sleep(5)
 
         tx_context_tx = create_tx_context(self.org1_admin,
@@ -114,7 +114,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         tran_req = build_tx_req(res)
         sleep(5)
 
-        send_transaction(self.channel.orderers, tran_req, tx_context_tx)
+        send_transaction(self.channel._orderers, tran_req, tx_context_tx)
 
     def test_query_installed_chaincodes_sucess(self):
 

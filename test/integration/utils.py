@@ -29,6 +29,8 @@ class BaseTestCase(unittest.TestCase):
         self.channel_name = "businesschannel"  # default application channel
         self.user = self.client.get_user('org1.example.com', 'Admin')
         self.assertIsNotNone(self.user, 'org1 admin should not be None')
+
+        # Boot up the testing network
         self.start_test_env()
 
     def tearDown(self):
@@ -45,6 +47,7 @@ class BaseTestCase(unittest.TestCase):
         cli_call(["docker-compose", "-f", self.compose_file_path, "down"])
 
 
+# This should be deprecated, and use client.get_user() API instead
 def get_peer_org_user(org, user, state_store):
     """Loads the requested user for a given peer org
         and returns a user object.
