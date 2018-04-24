@@ -64,9 +64,7 @@ clean:
 
 # Enter a virtual env
 venv:
-	if [ ! -d venv ]; then \
-		virtualenv venv; \
-	fi
+	bash ./scripts/create_venv.sh
 	@echo "Run 'source venv/bin/activate' to active the virtual env now."
 
 install: # Install sdk to local python env
