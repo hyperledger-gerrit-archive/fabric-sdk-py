@@ -51,4 +51,7 @@ IMG=hyperledger/fabric-baseimage:$ARCH-$BASEIMAGE_RELEASE
 IMG=hyperledger/fabric-baseos:$ARCH-$BASEIMAGE_RELEASE
 [ -z "$(docker images -q ${IMG} 2> /dev/null)" ] && docker pull ${IMG}
 
+# install lib for pycurl
+sudo apt-get install libcurl4-openssl-dev
+
 exit 0
