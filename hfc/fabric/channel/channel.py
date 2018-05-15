@@ -660,7 +660,6 @@ class Channel(object):
         """
         if not peers:
             peers = self.peers.values()
-
         return Channel._send_tx_proposal(self.name, tx_context, peers)
 
     @staticmethod
@@ -728,6 +727,26 @@ class Channel(object):
             fcn='getinstalledchaincodes',
             cc_name='lscc',
             cc_type=CC_TYPE_GOLANG)
+
+        tx_context.tx_prop_req = request
+        return self.send_tx_proposal(tx_context, peers)
+
+    def query_transaction_by_id(self, tx_context, peers, transaction_id):
+        """
+        Args:
+            tx_context: tx_context instance
+            peers: peers in the channel
+            transaction_id: id of the tx to query
+
+        Returns: chain code response
+        """
+        request = create_tx_prop_req(
+            prop_type=CC_QUERY,
+            fcn='GetTransactionByID',
+            cc_name='qscc',
+            args=[self.name, transaction_id],
+            cc_type=CC_TYPE_GOLANG
+        )
 
         tx_context.tx_prop_req = request
         return self.send_tx_proposal(tx_context, peers)
