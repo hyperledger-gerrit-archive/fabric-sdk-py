@@ -33,7 +33,7 @@ def proto_str(x):
 
 proto_b = \
     sys.version_info[0] < 3 and (lambda x: x) or (
-        lambda x: x.encode('latin1'))
+        lambda x: str(x).encode('latin1'))
 
 if sys.version_info < (3, 0):
     from Queue import Queue
