@@ -1,14 +1,14 @@
 # Tutorial of using Fabric SDK
 
-**Notice: The tutorial is still in-progress, feel free to ask question in the rktchat channel. Code can be found at [e2e_test.py](test/integration/e2e_test.py).**
+**Notice: The tutorial is still in-progress, feel free to ask question in the rktchat channel. Code can be found at[e2e_test.py](test/integration/e2e_test.py).**
 
 
-## Pre-requisites
+# Pre-requisites
 
-### Install Fabric SDK
+# Install Fabric SDK
 
 ```bash
-$ git clone https://github.com/hyperledger/fabric-sdk-py.git
+$ git clone https: // github.com/hyperledger/fabric-sdk-py.git
 $ cd fabric-sdk-py
 $ make install
 ```
@@ -17,27 +17,27 @@ After installation, you can optionally verify the installation.
 
 ```bash
 $ python
->>> import hfc
->>> print(hfc.VERSION)
+>> > import hfc
+>> > print(hfc.VERSION)
 0.7.0
 ```
 
-### Start a Fabric Network
+# Start a Fabric Network
 
 SDK needs a targeted fabric network to operate with, if there is not a running one, need to start a network manually.
 
 To start a fabric network you can simple up the `docker-compose-2orgs-4peers-tls` under fixtures.
 
 ```bash
-$ docker-compose -f test/fixtures/docker-compose-2orgs-4peers-tls.yaml up
+$ docker-compose - f test/fixtures/docker-compose-2orgs-4peers-tls.yaml up
 ```
 
-Then you'll have 2 orgs (org1.example.com; org2.example.com) with 2 peers in each one and one orderer (orderer.example.com)
+Then you'll have 2 orgs(org1.example.com; org2.example.com) with 2 peers in each one and one orderer(orderer.example.com)
 
-If you want to understand the fabric network and how to change the network configuration, feel free to follow the byfn tutorial, from [crypto-generator section](http://hyperledger-fabric.readthedocs.io/en/release/build_network.html#crypto-generator) to [start-the-network section](http://hyperledger-fabric.readthedocs.io/en/release/build_network.html#start-the-network).
+If you want to understand the fabric network and how to change the network configuration, feel free to follow the byfn tutorial, from [crypto-generator section](http: // hyperledger-fabric.readthedocs.io/en/release/build_network.html  # crypto-generator) to [start-the-network section](http://hyperledger-fabric.readthedocs.io/en/release/build_network.html#start-the-network).
 service on the yaml file either.
 
-### Create Connection Profile
+# Create Connection Profile
 
 A network connection profile will include all information that SDK requires to operate with a fabric network, including:
 
@@ -46,92 +46,116 @@ A network connection profile will include all information that SDK requires to o
 
 e.g., `network1.json`.
 
-## Load Configurations
+# Load Configurations
 
 SDK can load all network information from the profile, and check the resources in the network.
 
 ```python
-# TODO: update code
 from hfc.fabric import Client
 
-cli = Client(net_profile="test/fixtures/network.json")
+cli=Client(net_profile="test/fixtures/network.json")
 
 cli.organizations  # orgs in the network
 cli.peers  # peers in the network
-cli.orderers # orderers in the network
+cli.orderers  # orderers in the network
 cli.CAs  # ca nodes in the network
 ```
 
-## Interaction with Fabric Network
+# Interaction with Fabric Network
 
 After load the configuration, SDK can operate with the network.
 
-### Create a New Channel
+# Create a New Channel
 
 ```python
 from hfc.fabric import Client
 
-cli = Client(net_profile="test/fixtures/network.json")
-org1_admin = cli.get_user('org1.example.com', 'Admin')
+cli=Client(net_profile="test/fixtures/network.json")
+org1_admin=cli.get_user('org1.example.com', 'Admin')
 
 # The response should be true if succeed
-response = cli.channel_create(
-		'orderer.example.com',
-		'businesschannel',
-		org1_admin,
-		'test/fixtures/e2e_cli/channel-artifacts/channel.tx')
+response=cli.channel_create(
+		'orderer.example.com',     # orderer_name
+		'businesschannel',         # channel_name
+		org1_admin,                # requester
+		'test/fixtures/e2e_cli/',  # config_yaml
+        'TwoOrgsChannel'           # channel_profile
+                           )
+
 ```
 
-### Join Peers into Channel
+# Join Peers into Channel
 
 ```python
 from hfc.fabric import Client
 
-cli = Client(net_profile="test/fixtures/network.json")
-org1_admin = cli.get_user('org1.example.com', 'Admin')
+cli=Client(net_profile="test/fixtures/network.json")
+org1_admin=cli.get_user('org1.example.com', 'Admin')
 
 # The response should be true if succeed
-response = cli.channel_join(
+response=cli.channel_join(
 		org1_admin,
 		'businesschannel',
 		['peer0.org1.example.com', 'peer1.org1.example.com'],
 		'orderer.example.com')
 ```
 
-### Install Chaincode to Peers
+# Install Chaincode to Peers
 
 ```python
 from hfc.fabric import Client
 
-cli = Client(net_profile="test/fixtures/network.json")
-org1_admin = cli.get_user('org1.example.com', 'Admin')
+cli=Client(net_profile="test/fixtures/network.json")
+org1_admin=cli.get_user('org1.example.com', 'Admin')
 
 # The response should be true if succeed
-response = cli.chaincode_install(
+response=cli.chaincode_install(
 		requestor=org1_admin,
 		peer_names=['peer0.org1.example.com'],
 		cc_path='github.com/example_cc',
 		cc_name='example_cc',
-		cc_version='v1.0' )
+		cc_version='v1.0')
 ```
 
-### Instantiate Chaincode in Channel
+# Instantiate Chaincode in Channel
 
 ```python
 from hfc.fabric import Client
 
-#TODO
+cli=Client(net_profile="test/fixtures/network.json")
+org1_admin=cli.get_user('org1.example.com', 'Admin')
+
+# for chaincode instantiation
+args = ['a', '200', 'b', '300']
+# The response should be true if succeed
+response=cli.chaincode_instantiate(
+		requestor=org1_admin,
+		peer_names=['peer0.org1.example.com'],
+        args=args,
+		cc_name='example_cc',
+		cc_version='v1.0')
 ```
 
-### Invoke a Chaincode
+# Invoke a Chaincode
 
 ```python
 from hfc.fabric import Client
 
-#TODO
+cli=Client(net_profile="test/fixtures/network.json")
+org1_admin=cli.get_user('org1.example.com', 'Admin')
+
+# for chaincode invoke
+args = ['a', 'b', '100']
+# The response should be true if succeed
+response=cli.chaincode_invoke(
+		requestor=org1_admin,
+		peer_names=['peer0.org1.example.com'],
+        args=args,
+		cc_name='example_cc',
+		cc_version='v1.0')
 ```
 
 
-## License <a name="license"></a>
+# License <a name="license"></a>
 
-<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a><br />This document is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+< a rel="license" href="http://creativecommons.org/licenses/by/4.0/" > <img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" / > < /a > <br / >This document is licensed under a < a rel="license" href="http://creativecommons.org/licenses/by/4.0/" > Creative Commons Attribution 4.0 International License < /a > .
