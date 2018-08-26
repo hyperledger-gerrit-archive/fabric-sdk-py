@@ -27,7 +27,7 @@ from hfc.fabric.organization import create_org
 from hfc.fabric.transaction.tx_context import TXContext, create_tx_context
 from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest, \
     create_tx_prop_req, CC_INSTALL, CC_TYPE_GOLANG, CC_INSTANTIATE, \
-    CC_INVOKE
+    CC_INVOKE, CC_QUERY
 from hfc.protos.common import common_pb2, configtx_pb2
 from hfc.util import utils
 from hfc.util.crypto.crypto import Ecies, ecies
@@ -831,8 +831,8 @@ class Client(object):
         res = queue.get(timeout=timeout)
         return res[0][0][0].response.status == 200
 
-    def query_installed_chaincode(self, requestor, peer_names,
-                                  timeout=5, channel_name='businesschannel'):
+    def query_installed_cc(self, requestor, peer_names,
+                           timeout=5, channel_name='businesschannel'):
         """
         query installed chaincode
 
@@ -848,6 +848,50 @@ class Client(object):
 
         queue = Queue(1)
         response.subscribe(
+            on_next=lambda x: queue.put(x),
+            on_error=lambda x: queue.put(x)
+        )
+
+        res = queue.get(timeout=timeout)
+        return res[0][0][0].response.status == 200
+
+    def query_instantiated_cc(self, requestor, channel_name,
+                              peer_names, timeout=5):
+        """
+        Query chaincode for ledger status (do not change the state of ledger)
+
+        :param requestor: User role who issue the request
+        :param channel_name: the name of the channel to send tx proposal
+        :param peer_names: Names of the peers to install
+        :param args (list): arguments (keys and values) for initialization
+        :param cc_name: chaincode name
+        :param cc_version: chaincode version
+        :param timeout: Timeout to wait
+        :return: True or False
+        """
+        peers = []
+        for peer_name in peer_names:
+            peer = self.get_peer(peer_name)
+            peers.append(peer)
+
+        tran_prop_req = create_tx_prop_req(
+            prop_type=CC_QUERY,
+            cc_name='lscc',
+            cc_type=CC_TYPE_GOLANG,
+            fcn='getchaincodes',
+        )
+
+        tx_context = create_tx_context(
+            requestor,
+            ecies(),
+            tran_prop_req
+        )
+
+        res = self.get_channel(
+            channel_name).send_tx_proposal(tx_context, peers)
+
+        queue = Queue(1)
+        res.subscribe(
             on_next=lambda x: queue.put(x),
             on_error=lambda x: queue.put(x)
         )

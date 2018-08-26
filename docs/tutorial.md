@@ -187,7 +187,7 @@ response = cli.chaincode_invoke(
                                )
 ```
 
-### Query a installed chaincode
+### Query an installed chaincode
 
 ```python
 from hfc.fabric import Client
@@ -197,14 +197,26 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 
 # make sure the chaincode is installed
 # the response should be true if succeed
-response = cli.query_installed_chaincode(
+response = cli.query_installed_cc(
                org1_admin,                 #requestor
                ['peer0.org1.example.com']  #peer_names
                                         )
-
-
 ```
 
+### Query an instantiated chaincode
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_instantiated_cc(
+               'businesschannel'           #channel_name
+               org1_admin,                 #requestor
+               ['peer0.org1.example.com']  #peer_names
+                                        )
+```
 
 ## License <a name="license"></a>
 

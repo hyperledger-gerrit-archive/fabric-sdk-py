@@ -176,13 +176,33 @@ class E2eTest(BaseTestCase):
         orgs = ["org1.example.com", "org2.example.com"]
         for org in orgs:
             org_admin = self.client.get_user(org, "Admin")
-            response = self.client.query_installed_chaincode(
+            response = self.client.query_installed_cc(
                 requestor=org_admin,
                 peer_names=['peer0.' + org, 'peer1.' + org],
             )
             self.assertTrue(response)
 
         logger.info("E2E: chaincode query done")
+
+    def query_instantiate_cc(self):
+        """
+        Test querying an example chaincode to peer
+
+        :return:
+        """
+        logger.info("E2E: query chaincode start")
+
+        orgs = ["org1.example.com"]
+        for org in orgs:
+            org_admin = self.client.get_user(org, "Admin")
+            response = self.client.query_instantiated_cc(
+                channel_name='businesschannel',
+                requestor=org_admin,
+                peer_names=['peer0.' + org, 'peer1.' + org],
+            )
+            self.assertTrue(response)
+
+        logger.info("E2E: query chaincode done")
 
     def test_in_sequence(self):
 
@@ -202,6 +222,8 @@ class E2eTest(BaseTestCase):
         self.chaincode_invoke()
 
         self.query_installed_cc()
+
+        self.query_instantiate_cc()
 
         logger.info("E2E all test cases done\n\n")
 

@@ -18,6 +18,7 @@ from test.integration.utils import get_peer_org_user,\
 from test.integration.config import E2E_CONFIG
 from test.integration.e2e_utils import build_channel_request,\
     build_join_channel_req
+# from hfc.protos.peer import proposal_response_pb2
 
 if sys.version_info < (3, 0):
     from Queue import Queue
@@ -132,4 +133,21 @@ class QueryChainInfoTest(BaseTestCase):
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
         res = q.get(timeout=5)
+        fres = res[0][0][0]
+        str_fres = fres.SerializeToString()
+        print(type(fres))
+        print(type(str_fres))
+        # print(proposal_response_pb2.ProposalResponse().ParseFromString(fres.payload))
+        print(fres.payload)
+        respayload = fres.payload
+        print(type(respayload))
+        # print(respayload.ParseFromString())
+        # resplstr = respayload.SerializeToString()
+        # print(resplstr)
+        de1 = respayload.decode('utf-8')
+        print(de1)
+        print(type(de1))
+        print(fres.response.payload.decode('latin1'))
+
+        # print(str_fres.decode('latin1'))
         self.assertEqual(res[0][0][0].response.status, 200)
