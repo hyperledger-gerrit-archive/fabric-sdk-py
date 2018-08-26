@@ -103,7 +103,7 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 response = cli.channel_create(
             'orderer.example.com',     # orderer_name
             'businesschannel',         # channel_name
-            org1_admin,                # requester
+            org1_admin,                # requestor
             'test/fixtures/e2e_cli/',  # config_yaml
             'TwoOrgsChannel'           # channel_profile
                              )
@@ -119,7 +119,7 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 
 # The response should be true if succeed
 response = cli.channel_join(
-               org1_admin,                 #requester
+               org1_admin,                 #requestor
                'businesschannel',          #channel_name
                ['peer0.org1.example.com',
                 'peer1.org1.example.com'], #peer_names
@@ -187,7 +187,7 @@ response = cli.chaincode_invoke(
                                )
 ```
 
-### Query a installed chaincode
+### Query an installed chaincode
 
 ```python
 from hfc.fabric import Client
@@ -196,15 +196,125 @@ cli = Client(net_profile="test/fixtures/network.json")
 org1_admin = cli.get_user('org1.example.com', 'Admin')
 
 # make sure the chaincode is installed
-# the response should be true if succeed
-response = cli.query_installed_chaincode(
-               org1_admin,                 #requestor
-               ['peer0.org1.example.com']  #peer_names
-                                        )
+response = cli.query_installed_cc(
+               requestor=org1_admin,
+               peer_names=['peer0.org1.example.com']
+                                 )
 
+"""
+# An example response:
+
+chaincodes {
+  name: "example_cc"
+  version: "1.0"
+  path: "github.com/example_cc"
+}
+"""
 
 ```
 
+### Query a channel
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_channels(
+               requestor=org1_admin,
+               peer_names=['peer0.org1.example.com']
+                              )
+
+"""
+# An example response:
+
+channels {
+  channel_id: "businesschannel"
+}
+"""
+
+```
+
+### Query Info
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_info(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org1.example.com']
+                          )
+```
+
+### Query Block by tx id
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+# example txid of instantiated chaincode transaction
+response = cli.query_block_by_txid(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org1.example.com'],
+               tx_id=cli.txid_for_test
+                              )
+```
+
+### Query Block by block number
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_block(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org1.example.com'],
+               block_number='1'
+                              )
+```
+
+### Query Transaction by tx id
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+# example txid of instantiated chaincode transaction
+response = cli.query_transaction(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org1.example.com'],
+               tx_id=cli.txid_for_test
+                              )
+```
+
+### Query Instantiated Chaincodes
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_instantiated_chaincodes(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org1.example.com'],
+                              )
+```
 
 ## License <a name="license"></a>
 
