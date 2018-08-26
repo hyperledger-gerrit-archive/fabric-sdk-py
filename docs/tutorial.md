@@ -103,7 +103,7 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 response = cli.channel_create(
             'orderer.example.com',     # orderer_name
             'businesschannel',         # channel_name
-            org1_admin,                # requester
+            org1_admin,                # requestor
             'test/fixtures/e2e_cli/',  # config_yaml
             'TwoOrgsChannel'           # channel_profile
                              )
@@ -119,7 +119,7 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 
 # The response should be true if succeed
 response = cli.channel_join(
-               org1_admin,                 #requester
+               org1_admin,                 #requestor
                'businesschannel',          #channel_name
                ['peer0.org1.example.com',
                 'peer1.org1.example.com'], #peer_names
@@ -187,7 +187,7 @@ response = cli.chaincode_invoke(
                                )
 ```
 
-### Query a installed chaincode
+### Query an installed chaincode
 
 ```python
 from hfc.fabric import Client
@@ -196,15 +196,45 @@ cli = Client(net_profile="test/fixtures/network.json")
 org1_admin = cli.get_user('org1.example.com', 'Admin')
 
 # make sure the chaincode is installed
-# the response should be true if succeed
-response = cli.query_installed_chaincode(
-               org1_admin,                 #requestor
-               ['peer0.org1.example.com']  #peer_names
-                                        )
+response = cli.query_installed_cc(
+               requestor=org1_admin,
+               peer_names=['peer0.org1.example.com']
+                                 )
 
+"""
+# An example response:
+
+chaincodes {
+  name: "example_cc"
+  version: "1.0"
+  path: "github.com/example_cc"
+}
+"""
 
 ```
 
+### Query a channel
+
+```python
+from hfc.fabric import Client
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user('org1.example.com', 'Admin')
+
+response = cli.query_channels(
+               requestor=org1_admin,
+               peer_names=['peer0.org1.example.com']
+                              )
+
+"""
+# An example response:
+
+channels {
+  channel_id: "businesschannel"
+}
+"""
+
+```
 
 ## License <a name="license"></a>
 
