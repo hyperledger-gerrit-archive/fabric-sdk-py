@@ -646,7 +646,10 @@ class Channel(object):
             args.append(proto_b(CC_INVOKE))
 
         for arg in request.args:
-            args.append(proto_b(arg))
+            if isinstance(arg, bytes):
+                args.append(arg)
+            else:
+                args.append(proto_b(arg))
 
         cc_id = chaincode_pb2.ChaincodeID()
         cc_id.name = request.cc_name
@@ -801,7 +804,6 @@ class Channel(object):
             fcn='GetBlockByHash',
             cc_name='qscc',
             args=[self.name, block_hash],
-            # argbytes=block_hash, # missing  in the function
             cc_type=CC_TYPE_GOLANG)
 
         tx_context.tx_prop_req = request
