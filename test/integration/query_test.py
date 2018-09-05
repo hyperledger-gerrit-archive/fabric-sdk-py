@@ -112,7 +112,7 @@ class ChaincodeInvokeTest(BaseTestCase):
         res = self.channel.send_tx_proposal(tx_context, [self.org1_peer])
 
         tran_req = build_tx_req(res)
-        sleep(5)
+        sleep(10)
 
         send_transaction(self.channel.orderers, tran_req, tx_context_tx)
 
@@ -130,6 +130,6 @@ class ChaincodeInvokeTest(BaseTestCase):
         q = Queue(1)
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
-        res = q.get(timeout=5)
+        res = q.get(timeout=10)
         logger.debug(res)
         self.assertEqual(res[0][0][0].response.status, 200)
