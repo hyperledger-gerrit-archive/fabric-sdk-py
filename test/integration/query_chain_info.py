@@ -125,7 +125,7 @@ class QueryChainInfoTest(BaseTestCase):
                                        ecies(),
                                        TXProposalRequest())
         sleep(5)
-        response = self.channel.query_chain_info(tx_context,
+        response = self.channel.query_info(tx_context,
                                                  [self.org1_peer])
         logger.debug(response)
         q = Queue(1)
