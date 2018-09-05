@@ -43,6 +43,9 @@ Then you'll have a fabric network with topology of 3 organizations:
  * orderer.example.com
    * orderer.example.com
 
+* Note: make sure `configtxgen` is in the 'PATH' by `command -v configtxgen` which returns the path to the tool
+* Also, it is recmmended that you set logging level to DEBUG or INFO when you meet a problem
+
 If you want to understand more details on starting up a fabric network, feel free to see the [Building Your First Network](https://hyperledger-fabric.readthedocs.io/en/latest/build_network.html) tutorial.
 
 ### 0.3. Create the Connection Profile
@@ -142,6 +145,18 @@ response = cli.channel_join(
                )
 print(response==True)
 
+# Join Peers from a different MSP into Channel
+org2_admin = cli.get_user(org_name='org2.example.com', name='Admin')
+
+# For operations on peers from org2.example.com, org2_admin is required as requestor
+response = cli.channel_join(
+               requestor=org2_admin,
+               channel_name='businesschannel',
+               peer_names=['peer0.org2.example.com',
+                           'peer1.org2.example.com']
+               orderer_name='orderer.example.com'
+               )
+print(response==True)
 ```
 
 ## 3. Operate Chaincodes with Fabric Network
