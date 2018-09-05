@@ -368,7 +368,7 @@ def build_tx_req(responses):
     responses.subscribe(on_next=lambda x: q.put(x),
                         on_error=lambda x: q.put(x))
 
-    res = q.get(timeout=10)
+    res = q.get(timeout=20)
     _logger.debug(res)
     for r in res[0]:
         if r[0].response.status != 200:
