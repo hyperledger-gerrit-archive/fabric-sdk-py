@@ -417,11 +417,6 @@ def send_install_proposal(tx_context, peers, scheduler=None):
         cc_deployment_spec.code_package = \
             tx_context.tx_prop_req.packaged_cc
 
-    cc_deployment_spec.effective_date.seconds = \
-        tx_context.tx_prop_req.effective_date.seconds
-    cc_deployment_spec.effective_date.nanos = \
-        tx_context.tx_prop_req.effective_date.nanos
-
     channel_header_extension = proposal_pb2.ChaincodeHeaderExtension()
     channel_header_extension.chaincode_id.name = \
         proto_str("lscc")

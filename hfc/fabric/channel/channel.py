@@ -304,11 +304,6 @@ class Channel(object):
                 cc_deployment_spec.code_package = \
                     tx_context.tx_prop_req.packaged_cc
 
-        cc_deployment_spec.effective_date.seconds = \
-            tx_context.tx_prop_req.effective_date.seconds
-        cc_deployment_spec.effective_date.nanos = \
-            tx_context.tx_prop_req.effective_date.nanos
-
         channel_header_extension = proposal_pb2.ChaincodeHeaderExtension()
         channel_header_extension.chaincode_id.name = \
             proto_str("lscc")
@@ -557,10 +552,6 @@ class Channel(object):
 
         cc_dep_spec = chaincode_pb2.ChaincodeDeploymentSpec()
         cc_dep_spec.chaincode_spec.CopyFrom(cc_spec)
-        cc_dep_spec.effective_date.seconds = \
-            tx_context.tx_prop_req.effective_date.seconds
-        cc_dep_spec.effective_date.nanos = \
-            tx_context.tx_prop_req.effective_date.nanos
 
         # construct the invoke spec
         # TODO: if the policy not provided, new one should be built.
