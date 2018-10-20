@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-import sys
 from time import sleep
 
 from hfc.fabric.peer import create_peer
@@ -17,11 +16,7 @@ from test.integration.utils import get_peer_org_user, \
 from test.integration.config import E2E_CONFIG
 from test.integration.e2e_utils import build_channel_request, \
     build_join_channel_req
-
-if sys.version_info < (3, 0):
-    from Queue import Queue
-else:
-    from queue import Queue
+from queue import Queue
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -107,7 +102,6 @@ class ChaincodeInstantiateTest(BaseTestCase):
                                        TXProposalRequest())
         tran_req = build_tx_req(res)
         response = send_transaction(channel.orderers, tran_req, tx_context)
-        sleep(5)
 
         q = Queue(1)
         response.subscribe(on_next=lambda x: q.put(x),

@@ -19,6 +19,7 @@ import random
 import os
 import tarfile
 import io
+from queue import Queue
 
 from google.protobuf.message import DecodeError
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -40,11 +41,6 @@ def proto_str(x):
 proto_b = \
     sys.version_info[0] < 3 and (lambda x: x) or (
         lambda x: x.encode('latin1'))
-
-if sys.version_info < (3, 0):
-    from Queue import Queue
-else:
-    from queue import Queue
 
 
 def create_serialized_identity(user):
@@ -416,11 +412,6 @@ def send_install_proposal(tx_context, peers, scheduler=None):
     else:
         cc_deployment_spec.code_package = \
             tx_context.tx_prop_req.packaged_cc
-
-    cc_deployment_spec.effective_date.seconds = \
-        tx_context.tx_prop_req.effective_date.seconds
-    cc_deployment_spec.effective_date.nanos = \
-        tx_context.tx_prop_req.effective_date.nanos
 
     channel_header_extension = proposal_pb2.ChaincodeHeaderExtension()
     channel_header_extension.chaincode_id.name = \
