@@ -92,19 +92,19 @@ class ChaincodeInstantiateTest(BaseTestCase):
         sleep(5)
 
         # send the transaction to the channel
-        tx_context = create_tx_context(org1_admin,
-                                       crypto,
-                                       TXProposalRequest())
-
         res = channel.send_instantiate_proposal(tx_context_dep, [peer])
         sleep(5)
 
         tran_req = build_tx_req(res)
+
+        tx_context = create_tx_context(org1_admin,
+                                       crypto,
+                                       TXProposalRequest())
         response = send_transaction(channel.orderers, tran_req, tx_context)
 
         q = Queue(1)
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
-        res, _ = q.get(timeout=10)
+        res, _ = q.get(timeout=20)
         logger.debug(res)
         self.assertEqual(res.status, 200)
