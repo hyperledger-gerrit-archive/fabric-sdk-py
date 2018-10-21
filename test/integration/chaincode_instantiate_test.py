@@ -38,7 +38,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
                  peer_config['server_hostname']),)
         endpoint = peer_config['grpc_request_endpoint']
 
-        peer = create_peer(endpoint=endpoint,
+        org1_peer = create_peer(endpoint=endpoint,
                            tls_cacerts=tls_cacerts,
                            opts=opts)
 
@@ -88,7 +88,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
         channel.join_channel(join_req)
         sleep(5)
 
-        self.client.send_install_proposal(tx_context_in, [peer])
+        self.client.send_install_proposal(tx_context_in, [org1_peer])
         sleep(5)
 
         # send the transaction to the channel
@@ -96,7 +96,7 @@ class ChaincodeInstantiateTest(BaseTestCase):
                                        crypto,
                                        TXProposalRequest())
 
-        res = channel.send_instantiate_proposal(tx_context_dep, [peer])
+        res = channel.send_instantiate_proposal(tx_context_dep, [org1_peer])
         sleep(5)
 
         tran_req = build_tx_req(res)
@@ -105,6 +105,6 @@ class ChaincodeInstantiateTest(BaseTestCase):
         q = Queue(1)
         response.subscribe(on_next=lambda x: q.put(x),
                            on_error=lambda x: q.put(x))
-        res, _ = q.get(timeout=10)
+        res, _ = q.get(timeout=20)
         logger.debug(res)
         self.assertEqual(res.status, 200)
