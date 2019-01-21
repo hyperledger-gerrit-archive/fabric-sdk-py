@@ -1,5 +1,8 @@
 # Change Log
 
+* 2019-01-21
+    * Support registration to fabric-ca
+
 * 2016-09-12: Initial commit
     * Add README
     * Add .gitignore and .gitattributes
