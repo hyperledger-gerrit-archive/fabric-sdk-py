@@ -1,6 +1,6 @@
 # Release Notes
 
-## [v0.7.0](https://github.com/hyperledger/fabric-sdk-py/releases/tag/v0.7.0) September 6, 2018
+## [v0.8.0](https://github.com/hyperledger/fabric-sdk-py/releases/tag/v0.8.0) January 21, 2019
 
 ### Add new features
 
@@ -18,6 +18,7 @@
         * Query instantiated Chaincode
         * Instantiate Chaincode
         * Invoke Chaincode
+* Fabric-CA Registration
 
 ### Improvements
 
@@ -35,4 +36,4 @@ none
 
 ### Change Log
 
-https://github.com/hyperledger/fabric-sdk-py/blob/master/CHANGELOG.md#v0.7.0
+https://github.com/hyperledger/fabric-sdk-py/blob/master/CHANGELOG.md#v0.8.0
