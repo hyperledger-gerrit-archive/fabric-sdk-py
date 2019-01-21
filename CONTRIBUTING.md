@@ -85,7 +85,7 @@ Example commit msg may look like:
 You can add more details here in several paragraphs, but please keep each line
 width less than 80 characters. A bug fix should include the issue number.
 
-Fix https://jira.hyperledger.org/browse/FABP-164.
+Issue: FABP-164
 
 Change-Id: Ife0f1a3866a636991e36b0b5b25b8f58c9208b79
 Signed-off-by: Your Name <committer@email.address>
