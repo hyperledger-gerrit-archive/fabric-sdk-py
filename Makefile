@@ -11,8 +11,9 @@ check: clean
 
 # Tox related variables
 TOX = tox
-TOX_VENV_NAMES = pylint flake8 py30 py35
-# [tox.pylint, tox.flake8, tox.py30, tox.py35]
+#TOX = "python -m tox"
+TOX_VENV_NAMES = pylint flake8 py30 py36
+# [tox.pylint, tox.flake8, tox.py30, tox.py36]
 TOX_VENVS = $(patsubst %, $(TOX).%, $(TOX_VENV_NAMES))
 
 # Run all unit test cases
@@ -29,7 +30,7 @@ define run-py-tox
 	@rm -rf .tox/$(1)/log
 	# bin_path=.tox/$(1)/bin
 	# export PYTHON=$bin_path/python
-	@tox -v -e$(1) test
+	@python -m tox -v -e$(1) test
 	# set +o pipefail
 endef
 
