@@ -1,10 +1,9 @@
 language: python
 python:
-  - "2.7"
   - "3.0"
-  - "3.5"
+  - "3.6"
 # command to install dependencies
-script: tox
+script: python -m tox
 branches:
   only:
     - master
