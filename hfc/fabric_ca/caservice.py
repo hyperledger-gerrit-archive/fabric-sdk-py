@@ -156,6 +156,43 @@ class Enrollment(object):
 
         return self._service.revoke(enrollmentID, aki, serial, reason, self)
 
+    def generateCRL(self, revokedBefore=None, revokedAfter=None,
+                    expireBefore=None, expireAfter=None):
+
+        if revokedAfter and revokedBefore:
+            try:
+                if revokedAfter > revokedBefore:
+                    msg = 'revokedAfter Date cannot be greater than the' \
+                          ' revokedBefore Date'
+                    raise ValueError(msg)
+            except:
+                msg = 'revokedAfter and revokedBefore are not Date'
+                raise ValueError(msg)
+
+        # pass date to YYYY-MM-DDTHH:mm:ss.sssZ
+        try:
+            revokedBefore = revokedBefore.isoformat()
+        except:
+            revokedBefore = None
+
+        try:
+            revokedAfter = revokedAfter.isoformat()
+        except:
+            revokedAfter = None
+
+        try:
+            expireBefore = expireBefore.isoformat()
+        except:
+            expireBefore = None
+
+        try:
+            expireAfter = expireAfter.isoformat()
+        except:
+            expireAfter = None
+
+        return self._service.generateCRL(revokedBefore, revokedAfter,
+                                         expireBefore, expireAfter, self)
+
     def __str__(self):
         return "[{}:{}]".format(self.__class__.__name__, self.get_attrs())
 
@@ -276,7 +313,7 @@ class CAClient(object):
         _logger.debug("Response status {0}".format(st))
         _logger.debug("Raw response json {0}".format(res))
 
-        if (res['success'] and res['result']['CAName'] == self._ca_name):
+        if res['success'] and res['result']['CAName'] == self._ca_name:
             return base64.b64decode(res['result']['CAChain'])
         else:
             raise ValueError("get_cainfo failed with errors {0}"
@@ -317,6 +354,7 @@ class CAClient(object):
         else:
             raise ValueError("Enrollment failed with errors {0}"
                              .format(res['errors']))
+
 
     def register(self, req, registrar):
         authorization = self.generateAuthToken(req, registrar)
@@ -370,6 +408,28 @@ class CAClient(object):
             raise ValueError("Revoking failed with errors {0}"
                              .format(res['errors']))
 
+    def generateCRL(self, req, registrar):
+        authorization = self.generateAuthToken(req, registrar)
+
+        req.update({
+            'caname': self._ca_name,
+            'caName': self._ca_name
+        })
+
+        res, st = self._send_ca_post(path='gencrl',
+                                     json=req,
+                                     headers={'Authorization': authorization},
+                                     verify=self._ca_certs_path)
+
+        _logger.debug('Response status {0}'.format(st))
+        _logger.debug('Raw response json {0}'.format(res))
+
+        if res['success']:
+            return res['result']['CRL']
+        else:
+            raise ValueError('generating CRL failed with errors {0}'
+                             .format(res['errors']))
+
     def newIdentityService(self):
         return IdentityService(self)
 
@@ -399,6 +459,7 @@ class CAService(object):
 
     def enroll(self, enrollment_id, enrollment_secret, csr=None, profile='',
                attr_reqs=None):
+
         """Enroll a registered user in order to receive a signed X509
          certificate
 
@@ -582,6 +643,31 @@ class CAService(object):
 
     def newAffiliationService(self):
         return self._ca_client.newAffiliationService()
+
+    def generateCRL(self, revokedBefore, revokedAfter, expireBefore,
+                    expireAfter, registrar):
+        """Generate CRL
+
+        Args
+        revokedBefore (Date) - Include certificates that were revoked before
+         this UTC timestamp (in RFC3339 format) in the CRL
+        revokedAfter (Date) - Include certificates that were revoked after
+         this UTC timestamp (in RFC3339 format) in the CRL
+        expireBefore (Date) - Include revoked certificates that expire before
+         this UTC timestamp (in RFC3339 format) in the CRL
+        expireAfter (Date) - Include revoked certificates that expire after
+         this UTC timestamp (in RFC3339 format) in the CRL
+
+         Returns: CRL (str): The Certificate Revocation List (CRL)
+        """
+        req = {
+            'revokedBefore': revokedBefore,
+            'revokedAfter': revokedAfter,
+            'expireBefore': expireBefore,
+            'expireAfter': expireAfter
+        }
+
+        return self._ca_client.generateCRL(req, registrar)
 
 
 def ca_service(target=DEFAULT_CA_ENDPOINT,
