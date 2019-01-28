@@ -132,6 +132,46 @@ class Enrollment(object):
 
         return self._service.revoke(enrollmentID, aki, serial, reason, self)
 
+<<<<<<< HEAD
+=======
+    def generateCRL(self, revokedBefore=None, revokedAfter=None,
+                    expireBefore=None, expireAfter=None):
+
+        if revokedAfter and revokedBefore:
+            try:
+                if revokedAfter > revokedBefore:
+                    msg = 'revokedAfter Date cannot be greater than the' \
+                          ' revokedBefore Date'
+                    raise ValueError(msg)
+            except:
+                msg = 'revokedAfter and revokedBefore are not Date'
+                raise ValueError(msg)
+
+        # pass date to YYYY-MM-DDTHH:mm:ss.sssZ
+        try:
+            revokedBefore = revokedBefore.isoformat()
+        except:
+            revokedBefore = None
+
+        try:
+            revokedAfter = revokedAfter.isoformat()
+        except:
+            revokedAfter = None
+
+        try:
+            expireBefore = expireBefore.isoformat()
+        except:
+            expireBefore = None
+
+        try:
+            expireAfter = expireAfter.isoformat()
+        except:
+            expireAfter = None
+
+        return self._service.generateCRL(revokedBefore, revokedAfter,
+                                         expireBefore, expireAfter, self)
+
+>>>>>>> 06121cb... [FABP-187] CA Revoke method
     def __str__(self):
         return "[{}:{}]".format(self.__class__.__name__, self.get_attrs())
 
@@ -185,7 +225,7 @@ class CAClient(object):
         _logger.debug("Response status {0}".format(st))
         _logger.debug("Raw response json {0}".format(res))
 
-        if (res['success'] and res['result']['CAName'] == self._ca_name):
+        if res['success'] and res['result']['CAName'] == self._ca_name:
             return base64.b64decode(res['result']['CAChain'])
         else:
             raise ValueError("get_cainfo failed with errors {0}"
@@ -214,39 +254,75 @@ class CAClient(object):
                              "'enrollmentID', 'enrollmentSecret' and 'csr'"
                              " are all required.")
 
-        req = {"certificate_request": csr}
-        if self._ca_name != "":
+        req = {'certificate_request': csr}
+        if self._ca_name != '':
             req.update({
-                "caName": self._ca_name
+                'caName': self._ca_name
             })
 
-        res, st = self._send_ca_post(path="enroll",
+        res, st = self._send_ca_post(path='enroll',
                                      json=req,
                                      auth=(enrollment_id, enrollment_secret),
                                      verify=self._ca_certs_path)
 
-        _logger.debug("Response status {0}".format(st))
-        _logger.debug("Raw response json {0}".format(res))
+        _logger.debug('Response status {0}'.format(st))
+        _logger.debug('Raw response json {0}'.format(res))
 
         if res['success']:
             return base64.b64decode(res['result']['Cert'])
         else:
-            raise ValueError("Enrollment failed with errors {0}"
+            raise ValueError('Enrollment failed with errors {0}'
                              .format(res['errors']))
 
     def register(self, req, authorization):
-        res, st = self._send_ca_post(path="register",
+        res, st = self._send_ca_post(path='register',
                                      json=req,
                                      headers={'Authorization': authorization},
                                      verify=self._ca_certs_path)
 
-        _logger.debug("Response status {0}".format(st))
-        _logger.debug("Raw response json {0}".format(res))
+        _logger.debug('Response status {0}'.format(st))
+        _logger.debug('Raw response json {0}'.format(res))
 
         if res['success']:
             return res['result']['secret']
         else:
-            raise ValueError("Registering failed with errors {0}"
+            raise ValueError('Registering failed with errors {0}'
+                             .format(res['errors']))
+
+    def revoke(self, req, authorization):
+        res, st = self._send_ca_post(path='revoke',
+                                     json=req,
+                                     headers={'Authorization': authorization},
+                                     verify=self._ca_certs_path)
+
+        _logger.debug('Response status {0}'.format(st))
+        _logger.debug('Raw response json {0}'.format(res))
+
+        if res['success']:
+            return res['result']['RevokedCerts'], res['result']['CRL']
+        else:
+            raise ValueError('Revoking failed with errors {0}'
+                             .format(res['errors']))
+
+    def generateCRL(self, req, authorization):
+
+        req.update({
+            'caname': self._ca_name,
+            'caName': self._ca_name
+        })
+
+        res, st = self._send_ca_post(path='gencrl',
+                                     json=req,
+                                     headers={'Authorization': authorization},
+                                     verify=self._ca_certs_path)
+
+        _logger.debug('Response status {0}'.format(st))
+        _logger.debug('Raw response json {0}'.format(res))
+
+        if res['success']:
+            return res['result']['CRL']
+        else:
+            raise ValueError('generating CRL failed with errors {0}'
                              .format(res['errors']))
 
     def revoke(self, req, authorization):
@@ -285,6 +361,12 @@ class CAService(object):
         self._crypto = crypto
 
     def generateAuthToken(self, req, registrar):
+
+        if self._ca_client._ca_name != '':
+            req.update({
+                'caName': self._ca_client._ca_name
+            })
+
         reqJson = json.dumps(req, ensure_ascii=False)
 
         b64Cert = base64.b64encode(registrar._cert)
@@ -408,6 +490,32 @@ class CAService(object):
         authorization = self.generateAuthToken(req, registrar)
 
         return self._ca_client.revoke(req, authorization)
+
+    def generateCRL(self, revokedBefore, revokedAfter, expireBefore,
+                    expireAfter, registrar):
+        """Generate CRL
+
+        Args
+        revokedBefore (Date) - Include certificates that were revoked before
+         this UTC timestamp (in RFC3339 format) in the CRL
+        revokedAfter (Date) - Include certificates that were revoked after
+         this UTC timestamp (in RFC3339 format) in the CRL
+        expireBefore (Date) - Include revoked certificates that expire before
+         this UTC timestamp (in RFC3339 format) in the CRL
+        expireAfter (Date) - Include revoked certificates that expire after
+         this UTC timestamp (in RFC3339 format) in the CRL
+
+         Returns: CRL (str): The Certificate Revocation List (CRL)
+        """
+        req = {
+            'revokedBefore': revokedBefore,
+            'revokedAfter': revokedAfter,
+            'expireBefore': expireBefore,
+            'expireAfter': expireAfter
+        }
+
+        authorization = self.generateAuthToken(req, registrar)
+        return self._ca_client.generateCRL(req, authorization)
 
 
 def ca_service(target=DEFAULT_CA_ENDPOINT,

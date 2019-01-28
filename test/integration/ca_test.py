@@ -41,8 +41,6 @@ class CATest(unittest.TestCase):
     def setUp(self):
         self._enrollment_id = ENROLLMENT_ID
         self._enrollment_secret = ENROLLMENT_SECRET
-        # self._enrollment_id = "testUser"
-        # self._enrollment_secret = "user1"
         if os.getenv("CA_ADDR"):
             self._ca_server_address = os.getenv("CA_ADDR")
         else:
@@ -146,6 +144,26 @@ class CATest(unittest.TestCase):
         self.assertTrue('AKI' in RevokedCerts[0])
         self.assertTrue(len(RevokedCerts[0]['AKI']) > 0)
         self.assertTrue(len(RevokedCerts[0]['Serial']) > 0)
+
+    def test_genCRL_success(self):
+        """Test revoke success.
+        """
+        ca_service = CAService("http://" + self._ca_server_address)
+        enrollment = ca_service.enroll(self._enrollment_id,
+                                       self._enrollment_secret)
+        # use a random username for registering for avoiding already register
+        # issues when test suite ran several times
+        username = get_random_username()
+        secret = enrollment.register(username)
+
+        # enroll new user
+        ca_service.enroll(username, secret)
+
+        # now revoke
+        enrollment.revoke(username)
+
+        # gen CRL
+        CRL = enrollment.generateCRL()
 
 
 if __name__ == '__main__':
