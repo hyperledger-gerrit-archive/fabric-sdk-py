@@ -6,6 +6,7 @@ import logging
 import unittest
 
 from test.integration.utils import BaseTestCase
+from test.integration.e2e_utils import build_channel_events_req
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -449,6 +450,18 @@ class E2eTest(BaseTestCase):
 
         logger.info("E2E: Query installed chaincode done")
 
+    def get_events(self):
+
+        channel = self.client.get_channel(self.channel_name)
+        org = 'org1.example.com'
+        peer = self.client.get_peer('peer0.' + org)
+
+        res = build_channel_events_req(org,
+                                       channel,
+                                       self.client)
+
+        self.assertTrue(False)
+
     def test_in_sequence(self):
 
         logger.info("\n\nE2E testing started...")
@@ -484,6 +497,8 @@ class E2eTest(BaseTestCase):
         self.query_transaction()
 
         self.get_channel_config()
+
+        self.get_events()
 
         logger.info("E2E all test cases done\n\n")
 
