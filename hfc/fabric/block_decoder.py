@@ -24,6 +24,7 @@ from hfc.protos.peer import transaction_pb2
 from hfc.protos.peer import proposal_pb2
 from hfc.protos.peer import proposal_response_pb2
 from hfc.protos.peer import configuration_pb2 as peer_configuration_pb2
+from hfc.protos.peer import events_pb2
 
 # Import required MSP Protos
 from hfc.protos.msp import msp_principal_pb2
@@ -101,6 +102,83 @@ class BlockDecoder(object):
         return processed_tx
 
 
+class FilteredBlockDecoder(object):
+    """
+        An object of a fully decoded protobuf message "FilteredBlock"
+    """
+
+    @staticmethod
+    def decode(block_bytes):
+        """
+        Constructs a JSON Object containing all decoded values from
+        protobuf encoded `FilteredBlock` bytes.
+
+        Args:
+            block_bytes (bytes): FilteredBlock instance
+
+        Returns: Dictionary containing decoded Filtered Block instance.
+        """
+
+        filtered_block = {}
+
+        try:
+            proto_block = events_pb2.FilteredBlock()
+            proto_block.ParseFromString(block_bytes)
+            filtered_block['channel_id'] = proto_block.channel_id
+            filtered_block['number'] = proto_block.number
+            filtered_block['filtered_transactions'] = []
+            fts = proto_block.filtered_transactions
+
+            for ft in fts:
+                ft_decoded = {
+                    'txid': ft.txid,
+                    'type': HeaderType.convert_to_string(ft.type),
+                    'tx_validation_code': tx_validation_code.get(ft.tx_validation_code,
+                                                                 'UNKNOWN_VALIDATION_CODE')
+                }
+
+                if hasattr(ft, 'transaction_actions'):
+                    ft_decoded['transaction_actions'] = [
+                        decode_chaincode_action(ca.chaincode_event.SerializeToString())
+                        for ca in ft.transaction_actions.chaincode_actions
+                    ]
+                filtered_block['filtered_transactions'].append(ft_decoded)
+
+        except Exception as e:
+            raise ValueError("FilteredBlockDecoder :: decode failed", e)
+        return filtered_block
+
+
+tx_validation_code = {
+    0: 'VALID',
+    1: 'NIL_ENVELOPE',
+    2: 'BAD_PAYLOAD',
+    3: 'BAD_COMMON_HEADER',
+    4: 'BAD_CREATOR_SIGNATURE',
+    5: 'INVALID_ENDORSER_TRANSACTION',
+    6: 'INVALID_CONFIG_TRANSACTION',
+    7: 'UNSUPPORTED_TX_PAYLOAD',
+    8: 'BAD_PROPOSAL_TXID',
+    9: 'DUPLICATE_TXID',
+    10: 'ENDORSEMENT_POLICY_FAILURE',
+    11: 'MVCC_READ_CONFLICT',
+    12: 'PHANTOM_READ_CONFLICT',
+    13: 'UNKNOWN_TX_TYPE',
+    14: 'TARGET_CHAIN_NOT_FOUND',
+    15: 'MARSHAL_TX_ERROR',
+    16: 'NIL_TXACTION',
+    17: 'EXPIRED_CHAINCODE',
+    18: 'CHAINCODE_VERSION_CONFLICT',
+    19: 'BAD_HEADER_EXTENSION',
+    20: 'BAD_CHANNEL_HEADER',
+    21: 'BAD_RESPONSE_PAYLOAD',
+    22: 'BAD_RWSET',
+    23: 'ILLEGAL_WRITESET',
+    24: 'INVALID_WRITESET',
+    254: 'NOT_VALIDATED',
+    255: 'INVALID_OTHER_REASON',
+}
+
 type_as_string = {
     0: 'MESSAGE',  # Used for messages which are signed but opaque
     1: 'CONFIG',  # Used for messages which express the channel config
@@ -122,13 +200,7 @@ class HeaderType(object):
     """
     @staticmethod
     def convert_to_string(type_value):
-        result = None
-        try:
-            result = type_as_string[type_value]
-        except Exception:
-            if not result:
-                result = 'UNKNOWN_TYPE'
-        return result
+        return type_as_string.get(type_value, 'UNKNOWN_TYPE')
 
     @staticmethod
     def decode_payload_based_on_type(proto_data, type_value):
