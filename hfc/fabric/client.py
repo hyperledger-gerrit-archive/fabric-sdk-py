@@ -33,7 +33,7 @@ from hfc.protos.common import common_pb2, configtx_pb2, ledger_pb2
 from hfc.protos.peer import query_pb2
 from hfc.protos.msp import identities_pb2
 from hfc.protos.gossip import message_pb2
-from hfc.fabric.block_decoder import BlockDecoder
+from hfc.fabric.block_decoder import BlockDecoder, FilteredBlockDecoder
 from hfc.util import utils
 from hfc.util.crypto.crypto import Ecies, ecies
 from hfc.util.keyvaluestore import FileKeyValueStore
@@ -1370,3 +1370,37 @@ class Client(object):
             peers.append(peer)
 
         return sorted(peers, key=lambda k: k['endpoint'])
+
+    def get_events(self, org_name, peer_name, channel_name,
+                   start=0, stop=None, filtered=False):
+        """Get Event
+
+        Args:
+            org_name (str): Description
+            peer_name (str): Description
+            channel_name (str): Description
+            start (int, optional): Description
+            stop (int, optional): Description
+            filtered (bool, optional): Description
+
+        Returns:
+            TYPE: Description
+        """
+        channel = self.get_channel(channel_name)
+
+        tx_prop_req = TXProposalRequest()
+
+        org_admin = self.get_user(org_name, 'Admin')
+        tx_context = TXContext(org_admin, ecies(), tx_prop_req)
+
+        peer = self.client.get_peer(peer_name)
+
+        events = peer.get_events(tx_context, channel.name,
+                                 start=start, stop=stop, filtered=filtered)
+
+        if filtered:
+            return [FilteredBlockDecoder().decode(event.filtered_block.SerializeToString())
+                    for event in events]
+        else:
+            return [BlockDecoder().decode(event.block.SerializeToString())
+                    for event in events]

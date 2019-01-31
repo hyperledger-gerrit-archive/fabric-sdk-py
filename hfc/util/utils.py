@@ -469,3 +469,23 @@ def package_chaincode(cc_path, cc_type):
 
     else:
         raise ValueError('Currently only support install GOLANG chaincode')
+
+
+def checkAndAddConfigSetting(option_name, default_value, options):
+    return_options = {}
+    return_options[option_name] = getConfigSetting(option_name, default_value)
+    if options:
+        keys = options.keys()
+        for i in keys:
+            key = keys[i]
+            value = options[key]
+            return_options[key] = value
+
+    return return_options
+
+
+def getConfigSetting(name, default_value):
+    # TODO get config
+    config = {}
+    # config = getConfig()
+    return config.get(name, default_value)
