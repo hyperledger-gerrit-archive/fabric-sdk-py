@@ -13,6 +13,8 @@ DEFAULT_PEER_ENDPOINT = 'localhost:7051'
 _logger = logging.getLogger(__name__ + ".peer")
 
 
+# TODO should extend Remote base class as in fabric-node-sdk
+
 class Peer(object):
     """ A peer node in the network.
 
@@ -91,6 +93,19 @@ class Peer(object):
 
         """
         return self._endpoint
+
+    @endpoint.setter
+    def endpoint(self, endpoint):
+        self._endpoint = endpoint
+
+    @property
+    def name(self):
+        """Get the peer name
+
+        Return: The peer name
+
+        """
+        return self._name
 
     def join(self, chan):
         """ Join a channel
