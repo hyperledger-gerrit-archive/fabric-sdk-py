@@ -161,6 +161,8 @@ class E2eTest(BaseTestCase):
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION
             )
+            print('chaincode invoke response')
+            print(response)
             self.assertTrue(response)
 
         logger.info("E2E: chaincode invoke done")
@@ -180,12 +182,12 @@ class E2eTest(BaseTestCase):
             response = self.client.chaincode_query(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org],
+                peer_names=['peer0.' + org, 'peer1.' + org],
                 args=args,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION
             )
-            self.assertEqual(int(response), 300)
+            self.assertEqual(response, '300')
 
         logger.info("E2E: chaincode query done")
 
@@ -275,6 +277,8 @@ class E2eTest(BaseTestCase):
                 peer_names=['peer0.' + org, 'peer1.' + org],
                 tx_id=self.client.txid_for_test
             )
+            print('='*20)
+            print(self.client.txid_for_test)
             self.assertEqual(
                 response['header']['number'],
                 1,
@@ -371,7 +375,7 @@ class E2eTest(BaseTestCase):
         """
         logger.info("E2E: Query installed chaincode start")
 
-        orgs = ["org1.example.com", "org2.example.com"]
+        orgs = ["org1.example.com"]
         for org in orgs:
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_instantiated_chaincodes(
@@ -406,6 +410,8 @@ class E2eTest(BaseTestCase):
 
         self.chaincode_query()
 
+        self.query_instantiated_chaincodes()
+
         self.query_installed_chaincodes()
 
         self.query_channels()
@@ -418,11 +424,7 @@ class E2eTest(BaseTestCase):
 
         self.query_block()
 
-        # TODO(dex): fix missing id
-        # self.query_transaction()
-
-        # TODO(dex): fix missing response
-        # self.query_instantiated_chaincodes()
+        self.query_transaction()
 
         logger.info("E2E all test cases done\n\n")
 

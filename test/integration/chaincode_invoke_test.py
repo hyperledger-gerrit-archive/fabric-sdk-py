@@ -99,5 +99,6 @@ class ChaincodeInvokeTest(BaseTestCase):
 
         tran_req = build_tx_req(res)
         response = send_transaction(channel.orderers, tran_req, tx_context_tx)
+        print(response)
 
         self.assertEqual(response[0].status, 200)
