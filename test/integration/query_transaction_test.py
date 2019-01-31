@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import logging
-
+import time
 from hfc.fabric.peer import create_peer
 from hfc.fabric.transaction.tx_context import create_tx_context
 from hfc.fabric.transaction.tx_proposal_request import create_tx_prop_req, \
@@ -24,7 +24,7 @@ CC_NAME = 'example_cc'
 CC_VERSION = '1.0'
 
 
-class QueryTransaction(BaseTestCase):
+class QueryTransactionTest(BaseTestCase):
     def invoke_chaincode(self):
 
         self.channel = self.client.new_channel(self.channel_name)
@@ -103,6 +103,7 @@ class QueryTransaction(BaseTestCase):
 
     def test_query_transaction_id_success(self):
         tx_id = self.invoke_chaincode()
+        time.sleep(5)
         tx_context = create_tx_context(self.org1_admin,
                                        ecies(),
                                        TXProposalRequest())
@@ -111,5 +112,5 @@ class QueryTransaction(BaseTestCase):
                                                    [self.org1_peer],
                                                    tx_id)
         logger.debug('Responses of query transaction:\n {}'.format(responses))
-        # TODO(dex): fix id missing
+
         self.assertEqual(responses[0][0].response.status, 200)

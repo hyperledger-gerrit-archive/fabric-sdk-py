@@ -444,8 +444,7 @@ class Client(object):
             protobuf envelope.
 
         Returns:
-            rx.Observable: An observable for the orderer_response
-                or an error.
+            BroadcastResponse which includes status and info
 
         """
         _logger.debug('_create_or_update_channel - start')

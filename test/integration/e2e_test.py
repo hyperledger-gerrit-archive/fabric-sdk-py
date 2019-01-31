@@ -371,7 +371,7 @@ class E2eTest(BaseTestCase):
         """
         logger.info("E2E: Query installed chaincode start")
 
-        orgs = ["org1.example.com", "org2.example.com"]
+        orgs = ["org1.example.com"]
         for org in orgs:
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_instantiated_chaincodes(
@@ -406,6 +406,8 @@ class E2eTest(BaseTestCase):
 
         self.chaincode_query()
 
+        self.query_instantiated_chaincodes()
+
         self.query_installed_chaincodes()
 
         self.query_channels()
@@ -418,11 +420,7 @@ class E2eTest(BaseTestCase):
 
         self.query_block()
 
-        # TODO(dex): fix missing id
-        # self.query_transaction()
-
-        # TODO(dex): fix missing response
-        # self.query_instantiated_chaincodes()
+        self.query_transaction()
 
         logger.info("E2E all test cases done\n\n")
 
