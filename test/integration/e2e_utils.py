@@ -133,3 +133,23 @@ def build_join_channel_req(org, channel, client):
     }
 
     return request
+
+
+def build_channel_events_req(org, channel, client):
+
+    tx_prop_req = TXProposalRequest()
+
+    org_admin = client.get_user(org, 'Admin')
+    tx_context = TXContext(org_admin, ecies(), tx_prop_req)
+
+    peer = client.get_peer('peer0.' + org)
+
+    events = peer.get_events(tx_context, channel.name, start=0)
+    request = {
+        "targets": [peer],
+        "block": events,
+        "tx_context": tx_context,
+        "transient_map": {},
+    }
+
+    return request
