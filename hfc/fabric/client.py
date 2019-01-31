@@ -693,7 +693,7 @@ class Client(object):
         return tx_path
 
     def chaincode_instantiate(self, requestor, channel_name, peer_names,
-                              args, cc_name, cc_version):
+                              args, cc_name, cc_version, timeout=10):
         """
             Instantiate installed chaincode to particular peer in
             particular channel
@@ -704,6 +704,7 @@ class Client(object):
         :param args (list): arguments (keys and values) for initialization
         :param cc_name: chaincode name
         :param cc_version: chaincode version
+        :param timeout: Timeout to wait
         :return: True or False
         """
         peers = []
@@ -735,29 +736,39 @@ class Client(object):
         tran_req = utils.build_tx_req(res)
         responses = utils.send_transaction(self.orderers, tran_req, tx_context)
 
-        self.txid_for_test = tx_context_dep.tx_id  # used only for query test
-
         if not(tran_req.responses[0].response.status == 200
-                and responses[0].status == 200):
+               and responses[0].status == 200):
             return False
 
         # Wait until chaincode is really instantiated
+        # Note : we will remove this part when we have channel event hub
         starttime = int(time.time())
-        while int(time.time()) - starttime < 30:
-            response = self.query_instantiated_chaincodes(
-                requestor=requestor,
-                channel_name=channel_name,
-                peer_names=peer_names
-            )
-            for chaincode in response.chaincodes:
-                if chaincode.name == cc_name \
-                        and chaincode.version == cc_version:
+        while int(time.time()) - starttime < timeout:
+            try:
+                response = self.query_transaction(
+                    requestor=requestor,
+                    channel_name=channel_name,
+                    peer_names=peer_names,
+                    tx_id=tx_context_dep.tx_id
+                )
+
+                if isinstance(response, dict):
+                    # Query transaction manage to decode block as dict only on
+                    # status 200
                     return True
+                else:
+                    # ProposalResponse
+                    if response.response.status == 200:
+                        return True
+
+                time.sleep(1)
+            except Exception:
+                time.sleep(1)
 
         return False
 
-    def chaincode_invoke(self, requestor, channel_name, peer_names,
-                         args, cc_name, cc_version):
+    def chaincode_invoke(self, requestor, channel_name, peer_names, args,
+                         cc_name, cc_version, fcn='invoke', timeout=10):
         """
         Invoke chaincode for ledger update
 
@@ -767,6 +778,8 @@ class Client(object):
         :param args (list): arguments (keys and values) for initialization
         :param cc_name: chaincode name
         :param cc_version: chaincode version
+        :param fcn: chaincode function
+        :param timeout: Timeout to wait
         :return: True or False
         """
         peers = []
@@ -779,7 +792,7 @@ class Client(object):
             cc_type=CC_TYPE_GOLANG,
             cc_name=cc_name,
             cc_version=cc_version,
-            fcn='invoke',
+            fcn=fcn,
             args=args
         )
 
@@ -793,15 +806,48 @@ class Client(object):
             channel_name).send_tx_proposal(tx_context, peers)
 
         tran_req = utils.build_tx_req(res)
-        tx_context_tx = create_tx_context(requestor, ecies(), tran_req)
+
+        tx_context_tx = create_tx_context(
+            requestor,
+            ecies(),
+            tran_req
+        )
 
         responses = utils.send_transaction(
             self.orderers, tran_req, tx_context_tx)
 
-        return responses[0].status == 200
+        if not(tran_req.responses[0].response.status == 200
+               and responses[0].status == 200):
+            return False
+
+        # Wait until chaincode invoke is really effective
+        # Note : we will remove this part when we have channel event hub
+        starttime = int(time.time())
+        while int(time.time()) - starttime < timeout:
+            try:
+                response = self.query_transaction(
+                    requestor=requestor,
+                    channel_name=channel_name,
+                    peer_names=peer_names,
+                    tx_id=tx_context.tx_id
+                )
+
+                if isinstance(response, dict):
+                    # Query transaction manage to decode block as dict only on
+                    # status 200
+                    return True
+                else:
+                    # ProposalResponse
+                    if response.response.status == 200:
+                        return True
+                time.sleep(1)
+            except Exception:
+                time.sleep(1)
+
+        return False
 
     def chaincode_query(self, requestor, channel_name, peer_names, args,
-                        cc_name, cc_version):
+                        cc_name, cc_version, fcn='query'):
         """
         Query chaincode
 
@@ -811,6 +857,7 @@ class Client(object):
         :param args (list): arguments (keys and values) for initialization
         :param cc_name: chaincode name
         :param cc_version: chaincode version
+        :param fcn: chaincode function
         :return: True or False
         """
         peers = []
@@ -823,7 +870,7 @@ class Client(object):
             cc_type=CC_TYPE_GOLANG,
             cc_name=cc_name,
             cc_version=cc_version,
-            fcn='query',
+            fcn=fcn,
             args=args
         )
 
@@ -1098,9 +1145,15 @@ class Client(object):
             if responses[0][0].response:
                 _logger.debug('response status {}'.format(
                     responses[0][0].response.status))
-                process_trans = BlockDecoder().decode_transaction(
-                    responses[0][0].response.payload)
-                return process_trans
+                try:
+                    process_trans = BlockDecoder().decode_transaction(
+                        responses[0][0].response.payload)
+                except Exception:
+                    # Fail to decode block
+                    pass
+                else:
+                    return process_trans
+
             return responses[0][0]
 
         except Exception:
