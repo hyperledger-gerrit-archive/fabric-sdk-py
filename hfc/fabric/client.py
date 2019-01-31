@@ -737,29 +737,33 @@ class Client(object):
         tran_req = utils.build_tx_req(res)
         responses = utils.send_transaction(self.orderers, tran_req, tx_context)
 
-        self.txid_for_test = tx_context_dep.tx_id  # used only for query test
-
         if not(tran_req.responses[0].response.status == 200
-                and responses[0].status == 200):
+               and responses[0].status == 200):
             return False
 
         # Wait until chaincode is really instantiated
+        # Note : we will remove this part when we have channel event hub
         starttime = int(time.time())
-        while int(time.time()) - starttime < 30:
-            response = self.query_instantiated_chaincodes(
-                requestor=requestor,
-                channel_name=channel_name,
-                peer_names=peer_names
-            )
-            for chaincode in response.chaincodes:
-                if chaincode.name == cc_name \
-                        and chaincode.version == cc_version:
+        while int(time.time()) - starttime < timeout:
+            try:
+                response = self.query_transaction(
+                    requestor=requestor,
+                    channel_name=channel_name,
+                    peer_names=peer_names,
+                    tx_id=tx_context_dep.tx_id
+                )
+
+                if response.response.status == 200:
                     return True
+                else:
+                    time.sleep(0.5)
+            except Exception:
+                time.sleep(0.5)
 
         return False
 
     def chaincode_invoke(self, requestor, channel_name, peer_names, args,
-                         cc_name, cc_version, timeout=10):
+                         cc_name, cc_version, fcn='invoke', timeout=10):
         """
         Invoke chaincode for ledger update
 
@@ -769,6 +773,7 @@ class Client(object):
         :param args (list): arguments (keys and values) for initialization
         :param cc_name: chaincode name
         :param cc_version: chaincode version
+        :param fcn: chaincode function
         :param timeout: Timeout to wait
         :return: True or False
         """
@@ -782,7 +787,7 @@ class Client(object):
             cc_type=CC_TYPE_GOLANG,
             cc_name=cc_name,
             cc_version=cc_version,
-            fcn='invoke',
+            fcn=fcn,
             args=args
         )
 
@@ -797,10 +802,42 @@ class Client(object):
 
         tran_req = utils.build_tx_req(res)
 
-        return tran_req.responses[0].response.status == 200
+        tx_context_tx = create_tx_context(
+            requestor,
+            ecies(),
+            tran_req
+        )
+
+        responses = utils.send_transaction(
+            self.orderers, tran_req, tx_context_tx)
+
+        if not(tran_req.responses[0].response.status == 200
+               and responses[0].status == 200):
+            return False
+
+        # Wait until chaincode invoke is really effective
+        # Note : we will remove this part when we have channel event hub
+        starttime = int(time.time())
+        while int(time.time()) - starttime < timeout:
+            try:
+                response = self.query_transaction(
+                    requestor=requestor,
+                    channel_name=channel_name,
+                    peer_names=peer_names,
+                    tx_id=tx_context.tx_id
+                )
+
+                if response.response.status == 200:
+                    return True
+                else:
+                    time.sleep(0.5)
+            except Exception:
+                time.sleep(0.5)
+
+        return False
 
     def chaincode_query(self, requestor, channel_name, peer_names, args,
-                        cc_name, cc_version, timeout=10):
+                        cc_name, cc_version, fcn='query', timeout=10):
         """
         Query chaincode
 
@@ -810,6 +847,7 @@ class Client(object):
         :param args (list): arguments (keys and values) for initialization
         :param cc_name: chaincode name
         :param cc_version: chaincode version
+        :param fcn: chaincode function
         :param timeout: Timeout to wait
         :return: True or False
         """
@@ -823,7 +861,7 @@ class Client(object):
             cc_type=CC_TYPE_GOLANG,
             cc_name=cc_name,
             cc_version=cc_version,
-            fcn='query',
+            fcn=fcn,
             args=args
         )
 
@@ -1093,10 +1131,9 @@ class Client(object):
         tx_context = create_tx_context(requestor, ecies(), TXProposalRequest())
 
         responses = channel.query_transaction(tx_context, peers, tx_id)
-        print(responses)
 
         try:
-            if responses[0][0].response:
+            if responses[0][0].response and responses[0][0].response == 200:
                 _logger.debug('response status {}'.format(
                     responses[0][0].response.status))
                 process_trans = BlockDecoder().decode_transaction(
