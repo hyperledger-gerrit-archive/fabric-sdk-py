@@ -13,6 +13,8 @@ DEFAULT_PEER_ENDPOINT = 'localhost:7051'
 _logger = logging.getLogger(__name__ + ".peer")
 
 
+# TODO should extend Remote base class as in fabric-node-sdk
+
 class Peer(object):
     """ A peer node in the network.
 
