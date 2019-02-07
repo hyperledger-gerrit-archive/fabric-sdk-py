@@ -1,0 +1,43 @@
+[ req ]
+default_bits                = 1024
+default_md                  = sha256
+default_keyfile             = privkey.pem
+distinguished_name          = req_distinguished_name
+attributes                  = req_attributes
+x509_extensions             = usr_cert
+
+[ usr_cert ]
+keyUsage                    = digitalSignature, keyEncipherment, cRLSign, keyCertSign
+extendedKeyUsage            = anyExtendedKeyUsage
+basicConstraints            = CA:TRUE
+subjectKeyIdentifier        = hash
+
+[ req_distinguished_name ]
+countryName                 = Country Name (2 letter code)
+countryName_default         = US
+countryName_min             = 2
+countryName_max             = 2
+
+stateOrProvinceName         = State or Province Name (full name)
+stateOrProvinceName_default = Some-State
+
+localityName                = Locality Name (eg, city)
+
+0.organizationName          = Organization Name (eg, company)
+0.organizationName_default  = Internet Widgits Pty Ltd
+
+
+organizationalUnitName      = Organizational Unit Name (eg, section)
+
+commonName                  = Common Name (e.g. server FQDN or YOUR name)
+commonName_max              = 64
+
+emailAddress                = Email Address
+emailAddress_max            = 64
+
+# SET-ex3                   = SET extension number 3
+
+[ req_attributes ]
+challengePassword           = A challenge password
+challengePassword_min       = 4
+challengePassword_max       = 20

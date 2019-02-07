@@ -24,7 +24,7 @@
       "users": {
         "Admin": {
           "cert": "test/fixtures/e2e_cli/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp/signcerts/Admin@example.com-cert.pem",
-          "private_key": "test/fixtures/e2e_cli/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp/keystore/630e3767a6e1d3c8e646460123d397455103a900efb4d6fb679a9d9c481841fc_sk"}
+          "private_key": "test/fixtures/e2e_cli/crypto-config/ordererOrganizations/example.com/users/Admin@example.com/msp/keystore/1d44ef631e7c43cf6b411ee6a372772503e19c4c8ce2b0184b4698c96a2272f3_sk"}
       }
     },
     "org1.example.com":{
@@ -39,11 +39,11 @@
       "users": {
         "Admin": {
           "cert": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem",
-          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/c76527489d5820bd04da80a84c07033ca574413f80614091e04f05c276fb6896_sk"
+          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/f07729818bdcffffd4f2ce0c0983a180a6c235724ddd9f25c2f0c6b02b6b7018_sk"
         },
         "User1": {
           "cert": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/signcerts/User1@org1.example.com-cert.pem",
-          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/da72fd6c0f4595d33eb9ae6f6d06cd171ebc3882fc856960c244b9b5c2b35a90_sk"
+          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/users/User1@org1.example.com/msp/keystore/5cbaf7ef5d44a46ab9929c132bb443d7d7d902f07498840f63232c4b98963b7c_sk"
         }
       }
     },
@@ -59,11 +59,11 @@
       "users": {
         "Admin": {
           "cert": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/Admin@org2.example.com-cert.pem",
-          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/7e0b1c172161fe0f33603106935d2584918e12af955108e429dd63d4c043067a_sk"
+          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/656227af88ab4a4a800ed1aafd1a3c3f39ecf203e66e100ce2f32488a910368d_sk"
         },
         "User1": {
           "cert": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/signcerts/User1@org2.example.com-cert.pem",
-          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/73beefad9003c589064deb2128c4f0831ba8003f1233102cc52a188afd05fe61_sk"
+          "private_key": "test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/users/User1@org2.example.com/msp/keystore/2c3b25de140eb78b58051cf1713a938e4865cac6dba869f1122a849b5b1815bd_sk"
         }
       }
     }
@@ -72,7 +72,7 @@
     "orderer.example.com":{
       "url":"localhost:7050",
       "grpcOptions":{
-        "ssl-target-name-override":"orderer.example.com",
+        "grpc.ssl_target_name_override":"orderer.example.com",
         "grpc-max-send-message-length":15
       },
       "tlsCACerts":{
@@ -85,18 +85,18 @@
       "url":"localhost:7051",
       "eventUrl":"localhost:7053",
       "grpcOptions":{
-        "ssl-target-name-override":"peer0.org1.example.com",
+        "grpc.ssl_target_name_override":"peer0.org1.example.com",
         "grpc.http2.keepalive_time":15
       },
       "tlsCACerts":{
-        "path":"test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
+        "path":"test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp/customcacerts/customca.org1.example.com-cert.pem"
       }
     },
     "peer1.org1.example.com":{
       "url":"localhost:8051",
       "eventUrl":"localhost:8053",
       "grpcOptions":{
-        "ssl-target-name-override":"peer1.org1.example.com"
+        "grpc.ssl_target_name_override":"peer1.org1.example.com"
       },
       "tlsCACerts":{
         "path":"test/fixtures/e2e_cli/crypto-config/peerOrganizations/org1.example.com/peers/peer1.org1.example.com/msp/tlscacerts/tlsca.org1.example.com-cert.pem"
@@ -106,7 +106,7 @@
       "url":"localhost:9051",
       "eventUrl":"localhost:9053",
       "grpcOptions":{
-        "ssl-target-name-override":"peer0.org2.example.com",
+        "grpc.ssl_target_name_override":"peer0.org2.example.com",
         "grpc.http2.keepalive_time":15
       },
       "tlsCACerts":{
@@ -117,7 +117,7 @@
       "url":"localhost:10051",
       "eventUrl":"localhost:10053",
       "grpcOptions":{
-        "ssl-target-name-override":"peer1.org2.example.com"
+        "grpc.ssl_target_name_override":"peer1.org2.example.com"
       },
       "tlsCACerts":{
         "path":"test/fixtures/e2e_cli/crypto-config/peerOrganizations/org2.example.com/peers/peer1.org2.example.com/msp/tlscacerts/tlsca.org2.example.com-cert.pem"

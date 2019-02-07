@@ -15,6 +15,10 @@
 import grpc
 
 
+def checkServerIdentity(hostname, certificate):
+    print(hostname, certificate)
+    return True
+
 def create_grpc_channel(target, cert_file=None, opts=None):
     """Construct a grpc channel.
 
@@ -39,4 +43,5 @@ def create_grpc_channel(target, cert_file=None, opts=None):
         return grpc.insecure_channel(target, opts)
     else:
         creds = grpc.ssl_channel_credentials(root_cert)
+        #creds = grpc.ssl_channel_credentials(root_cert, verify_callback=checkServerIdentity)
         return grpc.secure_channel(target, creds, opts)

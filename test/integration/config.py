@@ -58,9 +58,7 @@ E2E_CONFIG = {
                     'grpc_request_endpoint': 'localhost:7051',
                     'grpc_event_endpoint': 'localhost:7053',
                     'server_hostname': 'peer0.org1.example.com',
-                    'tls_cacerts': 'test/fixtures/e2e_cli/crypto-config/peerOrganizations/'
-                                   'org1.example.com/peers/peer0.org1.example.com/msp/tlscacerts/'
-                                   'tlsca.org1.example.com-cert.pem'
+                    'tls_cacerts': 'tlsca.org1.example.com-cert.pem'
                 }
             }
         },

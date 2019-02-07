@@ -18,7 +18,7 @@ fi
 
 echo "Generate genesis block for system channel using configtx.yaml"
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -channelID ${SYS_CHANNEL} \
     -profile ${ORDERER_GENSIS_PROFILE} \
@@ -27,27 +27,27 @@ configtxgen \
 
 echo "Generate the new app channel tx using configtx.yaml"
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -profile ${APP_CHANNEL_PROFILE} \
     -channelID ${APP_CHANNEL} \
     -outputCreateChannelTx e2e_cli/${CHANNEL_ARTIFACTS}/channel.tx
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -inspectChannelCreateTx e2e_cli/${CHANNEL_ARTIFACTS}/channel.tx > e2e_cli/${CHANNEL_ARTIFACTS}/channel.json
 
 
 echo "Create the anchor peer configuration tx for org1 and org2"
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -profile ${APP_CHANNEL_PROFILE} \
     -channelID ${APP_CHANNEL} \
     -asOrg ${ORG1MSP} \
     -outputAnchorPeersUpdate e2e_cli/${CHANNEL_ARTIFACTS}/${UPDATE_ANCHOR_ORG1_TX}
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -profile ${APP_CHANNEL_PROFILE} \
     -channelID ${APP_CHANNEL} \
@@ -56,10 +56,10 @@ configtxgen \
 
 echo "Output the json for org1, org2"
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -printOrg ${ORG1MSP} >e2e_cli/${CHANNEL_ARTIFACTS}/${ORG1MSP}.json
 
-configtxgen \
+../../fabric-bin/bin/configtxgen \
     -configPath e2e_cli \
     -printOrg ${ORG2MSP} >e2e_cli/${CHANNEL_ARTIFACTS}/${ORG2MSP}.json
