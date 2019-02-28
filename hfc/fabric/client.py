@@ -335,8 +335,7 @@ class Client(object):
         tx_prop_req = TXProposalRequest()
 
         # get the genesis block
-        orderer_admin = self.get_user('orderer.example.com', 'Admin')
-        tx_context = TXContext(orderer_admin, ecies(), tx_prop_req)
+        tx_context = TXContext(requestor, ecies(), tx_prop_req)
         genesis_block = orderer.get_genesis_block(
             tx_context,
             channel.name).SerializeToString()
@@ -688,7 +687,7 @@ class Client(object):
                                    '-configPath', cfg_path,
                                    '-profile', channel_profile,
                                    '-channelID', channel_name,
-                                  '-outputCreateChannelTx', tx_path],
+                                   '-outputCreateChannelTx', tx_path],
                                   stdout=open(os.devnull, "w"),
                                   stderr=subprocess.PIPE, env=new_env)
         err = output.communicate()[1]
