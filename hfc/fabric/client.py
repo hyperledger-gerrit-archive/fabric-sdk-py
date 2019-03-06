@@ -674,8 +674,14 @@ class Client(object):
         Returns: path to tx file if success else None
 
         """
-        # check if configtxgen is in PATH
+        try:
+            executable_path = os.path.join(
+                os.path.dirname(__file__).rsplit('/', 2)[0], 'fabric-bin/bin')
+            os.environ['PATH'] += os.pathsep + executable_path
+        except Exception as e:
+            _logger.error('unable to add path of executables, {}'.format(e))
 
+        # check if configtxgen is in PATH
         if shutil.which('configtxgen') is None:
             _logger.error("configtxgen not in PATH.")
             return None
