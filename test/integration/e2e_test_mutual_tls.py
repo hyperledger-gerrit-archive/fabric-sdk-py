@@ -24,8 +24,9 @@ class E2eTest(BaseTestCase):
 
     def setUp(self):
         self.gopath_bak = os.environ.get('GOPATH', '')
-        gopath = os.path.normpath(os.path.join(os.path.dirname(__file__),
-                                               "../fixtures/chaincode"))
+        gopath = os.path.normpath(
+            os.path.join(os.path.dirname(__file__),
+                         "../fixtures/chaincode"))
         os.environ['GOPATH'] = os.path.abspath(gopath)
         self.channel_tx = \
             E2E_CONFIG['test-network']['channel-artifacts']['channel.tx']
@@ -50,11 +51,7 @@ class E2eTest(BaseTestCase):
         super(E2eTest, self).tearDown()
 
     def channel_create(self):
-        """
-        Create an channel for further testing.
-
-        :return:
-        """
+        """Create an channel for further testing."""
         logger.info("E2E: Channel creation start: name={}".format(
             self.channel_name))
 
@@ -70,12 +67,7 @@ class E2eTest(BaseTestCase):
             self.channel_name))
 
     def channel_join(self):
-        """
-        Join peers of two orgs into an existing channels
-
-        :return:
-        """
-
+        """Join peers of two orgs into an existing channels."""
         logger.info("E2E: Channel join start: name={}".format(
             self.channel_name))
 
@@ -89,9 +81,9 @@ class E2eTest(BaseTestCase):
             response = self.client.channel_join(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                orderer_name='orderer.example.com'
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                orderer_name='orderer.example.com')
             self.assertTrue(response)
             # Verify the ledger exists now in the peer node
             dc = docker.from_env()
@@ -107,11 +99,7 @@ class E2eTest(BaseTestCase):
             self.channel_name))
 
     def chaincode_install(self):
-        """
-        Test installing an example chaincode to peer
-
-        :return:
-        """
+        """Test installing an example chaincode to peers."""
         logger.info("E2E: Chaincode install start")
 
         orgs = ["org1.example.com", "org2.example.com"]
@@ -119,11 +107,11 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.chaincode_install(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
                 cc_path=CC_PATH,
                 cc_name=CC_NAME,
-                cc_version=CC_VERSION
-            )
+                cc_version=CC_VERSION)
             self.assertTrue(response)
             # Verify the cc pack exists now in the peer node
             dc = docker.from_env()
@@ -141,11 +129,7 @@ class E2eTest(BaseTestCase):
         pass
 
     def chaincode_instantiate(self):
-        """
-        Test instantiating an example chaincode to peer
-
-        :return:
-        """
+        """Test instantiating an example chaincode to peers."""
         logger.info("E2E: Chaincode instantiation start")
 
         orgs = ["org1.example.com"]
@@ -158,19 +142,14 @@ class E2eTest(BaseTestCase):
                 peer_names=['peer0.' + org],
                 args=args,
                 cc_name=CC_NAME,
-                cc_version=CC_VERSION
-            )
+                cc_version=CC_VERSION)
             logger.info(
                 "E2E: Chaincode instantiation response {}".format(response))
             self.assertTrue(response)
         logger.info("E2E: chaincode instantiation done")
 
     def chaincode_invoke(self):
-        """
-        Test invoking an example chaincode to peer
-
-        :return:
-        """
+        """Test invoking an example chaincode to peers."""
         logger.info("E2E: Chaincode invoke start")
 
         orgs = ["org1.example.com"]
@@ -183,18 +162,13 @@ class E2eTest(BaseTestCase):
                 peer_names=['peer1.' + org],
                 args=args,
                 cc_name=CC_NAME,
-                cc_version=CC_VERSION
-            )
+                cc_version=CC_VERSION)
             self.assertEqual(response, '')
 
         logger.info("E2E: chaincode invoke done")
 
     def chaincode_query(self):
-        """
-        Test invoking an example chaincode to peer
-
-        :return:
-        """
+        """Test invoking an example chaincode to peers."""
         logger.info("E2E: Chaincode query start")
 
         orgs = ["org1.example.com"]
@@ -207,18 +181,13 @@ class E2eTest(BaseTestCase):
                 peer_names=['peer0.' + org],
                 args=args,
                 cc_name=CC_NAME,
-                cc_version=CC_VERSION
-            )
+                cc_version=CC_VERSION)
             self.assertEqual(response, '400')  # 300 + 100
 
         logger.info("E2E: chaincode query done")
 
     def query_installed_chaincodes(self):
-        """
-        Test query installed chaincodes on peer
-
-        :return:
-        """
+        """Test query installed chaincodes on peers."""
         logger.info("E2E: Query installed chaincode start")
 
         orgs = ["org1.example.com", "org2.example.com"]
@@ -226,23 +195,23 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_installed_chaincodes(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
-            self.assertEqual(
-                response.chaincodes[0].name, CC_NAME, "Query failed")
-            self.assertEqual(
-                response.chaincodes[0].version, CC_VERSION, "Query failed")
-            self.assertEqual(
-                response.chaincodes[0].path, CC_PATH, "Query failed")
+            self.assertEqual(response.chaincodes[0].name,
+                             CC_NAME,
+                             "Query failed")
+            self.assertEqual(response.chaincodes[0].version,
+                             CC_VERSION,
+                             "Query failed")
+            self.assertEqual(response.chaincodes[0].path,
+                             CC_PATH,
+                             "Query failed")
 
         logger.info("E2E: Query installed chaincode done")
 
     def query_channels(self):
-        """
-        Test querying channel
-
-        :return:
-        """
+        """Test querying channel on peers."""
         logger.info("E2E: Query channel start")
 
         orgs = ["org1.example.com"]
@@ -250,21 +219,17 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_channels(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
-            self.assertEqual(
-                response.channels[0].channel_id,
-                'businesschannel',
-                "Query failed")
+            self.assertEqual(response.channels[0].channel_id,
+                             'businesschannel',
+                             "Query failed")
 
         logger.info("E2E: Query channel done")
 
     def query_info(self):
-        """
-        Test querying information on the state of the Channel
-
-        :return:
-        """
+        """Test querying information on the state of the channel."""
         logger.info("E2E: Query info start")
 
         orgs = ["org1.example.com"]
@@ -273,21 +238,15 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
-            self.assertEqual(
-                response.height,
-                3,
-                "Query failed")
+            self.assertEqual(response.height, 3, "Query failed")
 
         logger.info("E2E: Query info done")
 
     def query_block_by_txid(self):
-        """
-        Test querying block by tx id
-
-        :return:
-        """
+        """Test querying block by transaction id."""
         logger.info("E2E: Query block by tx id start")
 
         orgs = ["org1.example.com"]
@@ -297,42 +256,37 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
 
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                block_hash=response.currentBlockHash
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                block_hash=response.currentBlockHash)
 
-            tx_id = response.get('data').get('data')[0].get(
-                'payload').get('header').get(
-                'channel_header').get('tx_id')
+            tx_id = response.get('data').get('data')[0].get('payload').get(
+                'header').get('channel_header').get('tx_id')
 
             response = self.client.query_block_by_txid(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                tx_id=tx_id
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                tx_id=tx_id)
 
             self.assertEqual(
-                response.get('data').get('data')[0].get(
-                    'payload').get('header').get(
-                    'channel_header').get('tx_id'),
+                response.get('data').get('data')[0].get('payload').get(
+                    'header').get('channel_header').get('tx_id'),
                 tx_id,
                 "Query failed")
 
         logger.info("E2E: Query block by tx id done")
 
     def query_block_by_hash(self):
-        """
-        Test querying block by block hash
-
-        :return:
-        """
+        """Test querying block by block hash."""
         logger.info("E2E: Query block by block hash start")
 
         orgs = ["org1.example.com"]
@@ -342,7 +296,8 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
 
             previous_block_hash = response.previousBlockHash
@@ -350,9 +305,9 @@ class E2eTest(BaseTestCase):
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                block_hash=current_block_hash
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                block_hash=current_block_hash)
 
             self.assertEqual(
                 response['header']['previous_hash'].decode('utf-8'),
@@ -362,11 +317,7 @@ class E2eTest(BaseTestCase):
         logger.info("E2E: Query block by block hash done")
 
     def query_block(self):
-        """
-        Test querying block by block number
-
-        :return:
-        """
+        """Test querying block by block number."""
         logger.info("E2E: Query block by block number start")
 
         orgs = ["org1.example.com"]
@@ -375,24 +326,18 @@ class E2eTest(BaseTestCase):
             response = self.client.query_block(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                block_number='0'
-            )
-            self.assertEqual(
-                response['header']['number'],
-                0,
-                "Query failed")
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                block_number='0')
+            self.assertEqual(response['header']['number'], 0, "Query failed")
             self.blockheader = response['header']
 
         logger.info("E2E: Query block by block number done")
 
     def query_transaction(self):
-        """
-        Test querying transaction by tx id
-
-        :return:
-        """
+        """Test querying transaction by transaction id."""
         logger.info("E2E: Query transaction by tx id start")
+
         orgs = ["org1.example.com"]
         for org in orgs:
             org_admin = self.client.get_user(org, "Admin")
@@ -400,26 +345,26 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
             )
 
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                block_hash=response.currentBlockHash
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                block_hash=response.currentBlockHash)
 
-            tx_id = response.get('data').get('data')[0].get(
-                'payload').get('header').get(
-                'channel_header').get('tx_id')
+            tx_id = response.get('data').get('data')[0].get('payload').get(
+                'header').get('channel_header').get('tx_id')
 
             response = self.client.query_transaction(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                tx_id=tx_id
-            )
+                peer_names=['peer0.' + org,
+                            'peer1.' + org],
+                tx_id=tx_id)
 
             self.assertEqual(
                 response.get('transaction_envelope').get('payload').get(
@@ -430,11 +375,7 @@ class E2eTest(BaseTestCase):
         logger.info("E2E: Query transaction by tx id done")
 
     def query_instantiated_chaincodes(self):
-        """
-        Test query instantiated chaincodes on peer
-
-        :return:
-        """
+        """Test query instantiated chaincodes on peers."""
         logger.info("E2E: Query installed chaincode start")
 
         orgs = ["org1.example.com"]
@@ -443,23 +384,22 @@ class E2eTest(BaseTestCase):
             response = self.client.query_instantiated_chaincodes(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org]
-            )
-            self.assertEqual(
-                response.chaincodes[0].name, CC_NAME, "Query failed")
-            self.assertEqual(
-                response.chaincodes[0].version, CC_VERSION, "Query failed")
-            self.assertEqual(
-                response.chaincodes[0].path, CC_PATH, "Query failed")
+                peer_names=['peer0.' + org,
+                            'peer1.' + org])
+            self.assertEqual(response.chaincodes[0].name,
+                             CC_NAME,
+                             "Query failed")
+            self.assertEqual(response.chaincodes[0].version,
+                             CC_VERSION,
+                             "Query failed")
+            self.assertEqual(response.chaincodes[0].path,
+                             CC_PATH,
+                             "Query failed")
 
         logger.info("E2E: Query installed chaincode done")
 
     def get_channel_config(self):
-        """
-        Test get channel config on peer
-
-        :return:
-        """
+        """Test get channel config on peers."""
         logger.info("E2E: Get channel config start")
 
         orgs = ["org1.example.com"]
@@ -468,10 +408,9 @@ class E2eTest(BaseTestCase):
             response = self.client.get_channel_config(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org]
-            )
-            self.assertEqual(response.config.sequence,
-                             1, "Get Config Failed")
+                peer_names=['peer0.' + org,
+                            'peer1.' + org])
+            self.assertEqual(response.config.sequence, 1, "Get Config Failed")
 
         logger.info("E2E: Query installed chaincode done")
 
