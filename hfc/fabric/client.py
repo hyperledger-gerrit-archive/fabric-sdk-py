@@ -42,20 +42,18 @@ from hfc.util.keyvaluestore import FileKeyValueStore
 from hfc.fabric.config.default import DEFAULT
 
 assert DEFAULT
-# consoleHandler = logging.StreamHandler()
+
 _logger = logging.getLogger(__name__)
-# _logger.setLevel(logging.DEBUG)
-# _logger.addHandler(consoleHandler)
 
 
 class Client(object):
-    """
-        Main interaction handler with end user.
-        Client can maintain several channels.
+    """Main interaction handler with end user.
+
+    Client can maintain several channels.
     """
 
     def __init__(self, net_profile=None):
-        """ Construct client"""
+        """Construct client."""
         self._crypto_suite = None
         self._tx_context = None
         self.kv_store_path = None  # TODO: fix t.his as private later
@@ -75,26 +73,26 @@ class Client(object):
             self.init_with_net_profile(net_profile)
 
     def init_with_net_profile(self, profile_path='network.json'):
-        """
-        Load the connection profile from external file to network_info.
+        """Load the connection profile from external file to network_info.
 
-        Init the handlers for orgs, peers, orderers, ca nodes
+        Init the handlers for orgs, peers, orderers, ca nodes.
 
-        :param profile_path: The connection profile file path
-        :return:
+        Args:
+            profile_path: The connection profile file path.
         """
         with open(profile_path, 'r') as profile:
             d = json.load(profile)
             self.network_info = d
 
         # read kv store path
-        self.kv_store_path = self.get_net_info('client', 'credentialStore',
+        self.kv_store_path = self.get_net_info('client',
+                                               'credentialStore',
                                                'path')
         if self.kv_store_path:
             self._state_store = FileKeyValueStore(self.kv_store_path)
         else:
-            _logger.warning('No kv store path exists in profile {}'.format(
-                profile_path))
+            _logger.warning(
+                'No kv store path exists in profile {}'.format(profile_path))
 
         # Init organizations
         orgs = self.get_net_info('organizations')
@@ -123,11 +121,14 @@ class Client(object):
             self._peers[name] = peer
 
     def get_user(self, org_name, name):
-        """
-        Get a user instance.
-        :param org_name: Name of org belongs to
-        :param name: Name of the user
-        :return: user instance or None
+        """Get a user instance.
+
+        Args:
+            org_name: Name of org belongs to.
+            name: Name of the user.
+
+        Returns:
+            User instance or None.
         """
         if org_name in self.organizations:
             org = self.organizations[org_name]
@@ -136,10 +137,13 @@ class Client(object):
         return None
 
     def get_orderer(self, name):
-        """
-        Get an orderer instance with the name.
-        :param name:  Name of the orderer node.
-        :return: The orderer instance or None.
+        """Get an orderer instance with the name.
+
+        Args:
+            name: Name of the orderer node.
+
+        Returns:
+            An orderer instance or None.
         """
         if name in self.orderers:
             return self.orderers[name]
@@ -148,10 +152,13 @@ class Client(object):
             return None
 
     def get_peer(self, name):
-        """
-        Get a peer instance with the name.
-        :param name:  Name of the peer node.
-        :return: The peer instance or None.
+        """Get a peer instance with the name.
+
+        Args:
+            name:  Name of the peer node.
+
+        Returns:
+            A peer instance or None.
         """
         if name in self._peers:
             return self._peers[name]
@@ -160,19 +167,25 @@ class Client(object):
             return None
 
     def export_net_profile(self, export_file='network_exported.json'):
-        """
-        Export the current network profile into external file
-        :param export_file: External file to save the result into
-        :return:
+        """Export the current network profile into external file.
+
+        Args:
+            export_file: External file to save the result into.
+
+        Returns:
+            A serialized string of network_info.
         """
         with open(export_file, 'w') as f:
             json.dump(self.network_info, f, indent=4)
 
     def get_net_info(self, *key_path):
-        """
-        Get the info from self.network_info
-        :param key_path: path of the key, e.g., a.b.c means info['a']['b']['c']
-        :return: The value, or None
+        """Get the info from network.
+
+        Args:
+            key_path: path of the key, e.g., a.b.c means info['a']['b']['c'].
+
+        Returns:
+            The value, or None.
         """
         result = self.network_info
         if result:
@@ -180,46 +193,30 @@ class Client(object):
                 try:
                     result = result[k]
                 except KeyError:
-                    _logger.warning('No key path {} exists in net info'.format(
-                        key_path))
+                    _logger.warning(
+                        'No key path {} exists in net info'.format(key_path))
                     return None
 
         return result
 
     @property
     def organizations(self):
-        """
-        Get the organizations in the network.
-
-        :return: organizations as dict
-        """
+        """Get the organizations in the network."""
         return self._organizations
 
     @property
     def orderers(self):
-        """
-        Get the orderers in the network.
-
-        :return: orderers as dict
-        """
+        """Get the orderers in the network."""
         return self._orderers
 
     @property
     def peers(self):
-        """
-        Get the peers instance in the network.
-
-        :return: peers as dict
-        """
+        """Get the peers instance in the network."""
         return self._peers
 
     @property
     def CAs(self):
-        """
-        Get the CAs in the network.
-
-        :return: CAs as dict
-        """
+        """Get the CAs in the network."""
         return self._CAs
 
     def new_channel(self, name):
@@ -230,7 +227,6 @@ class Client(object):
 
         Returns:
             channel: The inited channel.
-
         """
         _logger.debug("New channel with name = {}".format(name))
         if name not in self._channels:
@@ -244,24 +240,29 @@ class Client(object):
             name (str): The name of the channel.
 
         Returns:
-            Get the channel instance with the name or None
-
+            Get the channel instance with the name or None.
         """
         return self._channels.get(name, None)
 
-    def channel_create(self, orderer_name, channel_name, requestor,
-                       config_yaml, channel_profile):
-        """
-        Create a channel, send request to orderer, and check the response
+    def channel_create(self,
+                       orderer_name,
+                       channel_name,
+                       requestor,
+                       config_yaml,
+                       channel_profile):
+        """Create a channel, send request to orderer, and check the response.
 
-        :param orderer_name: Name of orderer to send request to
-        :param channel_name: Name of channel to create
-        :param requestor: Name of creator
-        :param config_yaml: Directory path of config yaml to be set for FABRIC_
-        CFG_PATH variable
-        :param channel_profile: Name of the channel profile defined inside
-        config yaml file
-        :return: True (creation succeeds) or False (creation failed)
+        Args:
+            orderer_name (str): Name of orderer to send request to.
+            channel_name (str): Name of channel to create.
+            requestor: Name of creator.
+            config_yaml (str): Directory path of config yaml to be set for
+                FABRIC_CFG_PATH variable.
+            channel_profile (str): Name of the channel profile defined
+                inside config yaml file.
+
+        Returns:
+            True (creation succeeds) or False (creation failed).
         """
         if self.get_channel(channel_name):
             _logger.warning("channel {} already existed when creating".format(
@@ -274,7 +275,8 @@ class Client(object):
                 orderer_name))
             return False
 
-        tx = self.generate_channel_tx(channel_name, config_yaml,
+        tx = self.generate_channel_tx(channel_name,
+                                      config_yaml,
                                       channel_profile)
         if tx is None:
             _logger.error('Configtx is empty')
@@ -311,21 +313,23 @@ class Client(object):
             return False
 
     def channel_join(self, requestor, channel_name, peer_names, orderer_name):
-        """
-        Join a channel.
-        Get genesis block from orderer, then send request to peer
+        """Join a channel.
 
-        :param requestor: User to send the request
-        :param channel_name: Name of channel to create
-        :param peer_names: List of peers to join to the channel
-        :param orderer_name: Name of orderer to get genesis block from
+        Get genesis block from orderer, then send request to peer.
 
-        :return: True (creation succeeds) or False (creation failed)
+        Args:
+            requestor (str): User to send the request.
+            channel_name (str): Name of channel to create.
+            peer_names (list): List of peers to join to the channel.
+            orderer_name (str): Name of orderer to get genesis block from.
+
+        Returns:
+            True (creation succeeds) or False (creation failed).
         """
         channel = self.get_channel(channel_name)
         if not channel:
-            _logger.warning("channel {} not existed when join".format(
-                channel_name))
+            _logger.warning(
+                "channel {} not existed when join".format(channel_name))
             return False
 
         orderer = self.get_orderer(orderer_name)
@@ -350,7 +354,6 @@ class Client(object):
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
-
         """
         # connect the peer
         eh = EventHub()
@@ -372,25 +375,34 @@ class Client(object):
 
         return channel.join_channel(request)
 
-    def chaincode_install(self, requestor, peer_names, cc_path, cc_name,
+    def chaincode_install(self,
+                          requestor,
+                          peer_names,
+                          cc_path,
+                          cc_name,
                           cc_version):
-        """
-        Install chaincode to given peers by requestor role
+        """Install chaincode to given peers by requestor role.
 
-        :param requestor: User role who issue the request
-        :param peer_names: Names of the peers to install
-        :param cc_path: chaincode path
-        :param cc_name: chaincode name
-        :param cc_version: chaincode version
-        :return: True or False
+        Args:
+            requestor (str): User role who issue the request.
+            peer_names (list): Names of the peers to install.
+            cc_path (str): Chaincode path.
+            cc_name (str): Chaincode name.
+            cc_version (str): Chaincode version.
+
+        Returns:
+            True or False.
         """
         peers = []
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        tran_prop_req = create_tx_prop_req(CC_INSTALL, cc_path, CC_TYPE_GOLANG,
-                                           cc_name, cc_version)
+        tran_prop_req = create_tx_prop_req(CC_INSTALL,
+                                           cc_path,
+                                           CC_TYPE_GOLANG,
+                                           cc_name,
+                                           cc_version)
         tx_context = create_tx_context(requestor, ecies(), tran_prop_req)
 
         responses = self.send_install_proposal(tx_context, peers)
@@ -400,7 +412,7 @@ class Client(object):
         """Calls the orderer to start building the new channel.
 
         Args:
-            request (dct): The create channel request.
+            request (dict): The create channel request.
 
         Returns:
             OrdererResponse or an error.
@@ -432,10 +444,10 @@ class Client(object):
         return self._create_or_update_channel_request(request, have_envelope)
 
     def _validate_request(self, request):
-        """
-        Validate a request
-        :param request: request to validate
-        :return:
+        """Validate a request.
+
+        Args:
+            request: request to validate.
         """
         # TODO: implement this to validate the request
         pass
@@ -449,8 +461,7 @@ class Client(object):
             protobuf envelope.
 
         Returns:
-            BroadcastResponse which includes status and info
-
+            BroadcastResponse which includes status and info.
         """
         _logger.debug('_create_or_update_channel - start')
 
@@ -482,8 +493,8 @@ class Client(object):
             error_msg = 'Missing channel_name request parameter'
 
         if error_msg:
-            _logger.error('_create_or_update_channel error: {}'
-                          .format(error_msg))
+            _logger.error(
+                '_create_or_update_channel error: {}'.format(error_msg))
             raise ValueError(error_msg)
 
         if have_envelope:
@@ -510,8 +521,7 @@ class Client(object):
                 common_pb2.HeaderType.Value('CONFIG_UPDATE'),
                 request['tx_id'],
                 request['channel_name'],
-                utils.current_timestamp()
-            )
+                utils.current_timestamp())
 
             proto_header = utils.build_header(self.tx_context.identity,
                                               proto_channel_header,
@@ -544,7 +554,7 @@ class Client(object):
 
         Args:
             config: The configuration update in bytes form.
-            to_string: Whether to convert the result to string
+            to_string: Whether to convert the result to string.
 
         Returns:
             config_signature (common_pb2.ConfigSignature):
@@ -577,8 +587,8 @@ class Client(object):
     def crypto_suite(self):
         """Get the crypto suite.
 
-        Returns: The crypto_suite instance or None
-
+        Returns:
+            A crypto_suite instance or None.
         """
         return self._crypto_suite
 
@@ -588,9 +598,6 @@ class Client(object):
 
         Args:
             crypto_suite: The crypto_suite to use.
-
-        Returns: None
-
         """
         self._crypto_suite = crypto_suite
 
@@ -598,8 +605,8 @@ class Client(object):
     def tx_context(self):
         """ Get the current tx_context for the client.
 
-        Returns: The tx_context object or None
-
+        Returns:
+            The tx_context object or None.
         """
         return self._tx_context
 
@@ -609,74 +616,72 @@ class Client(object):
 
         Args:
             tx_context: The tx_context to be used.
-
-        Return: None
-
         """
         self._tx_context = tx_context
 
     @property
     def state_store(self):
-        """ Get the KeyValue store.
+        """Get the KeyValue store.
 
-        Return the keyValue store instance or None
-
+        Returns:
+            The KeyValue store instance or None.
         """
         return self._state_store
 
     @state_store.setter
     def state_store(self, state_store):
-        """ Set the KeyValue store.
+        """Set the KeyValue store.
 
         Args:
-            state_store: the KeyValue store to use.
-
-        No return Value
-
+            state_store: The KeyValue store to use.
         """
         self._state_store = state_store
 
     def send_install_proposal(self, tx_context, peers):
         """ Send install proposal
+
         Args:
-            tx_context: transaction context
-            peers: peers
-            scheduler: rx scheduler
-        Returns: A set of proposal_response
+            tx_context: Transaction context.
+            peers: Name of peers.
+
+        Returns:
+            A set of proposal_response.
         """
         return utils.send_install_proposal(tx_context, peers)
 
-    def send_instantiate_proposal(self, tx_context, peers,
-                                  channel_name):
+    def send_instantiate_proposal(self, tx_context, peers, channel_name):
         """ Send instantiate proposal
 
         Args:
-            tx_context: transaction context
-            peers: peers
-            channel_name: the name of channel
+            tx_context: Transaction context.
+            peers: Name of peers.
+            channel_name: The name of channel.
 
-        Returns: A set of proposal_response
-
+        Returns:
+            A set of proposal_response.
         """
         app_channel = self.get_channel(channel_name)
         _logger.debug("context {}".format(tx_context))
         return app_channel.send_instantiate_proposal(tx_context, peers)
 
     def generate_channel_tx(self, channel_name, cfg_path, channel_profile):
-        """ Creates channel configuration transaction
+        """Creates channel configuration transaction.
 
         Args:
-            :param channel_name: Name of the channel
-            :param cfg_path: Directory path of config yaml to be set for
-            FABRIC_CFG_PATH variable
-            :param channel_profile: Name of the channel profile defined inside
-            config yaml file
-        Returns: path to tx file if success else None
+            channel_name (str): Name of the channel.
+            cfg_path (str): Directory path of config yaml to be set for
+            FABRIC_CFG_PATH variable.
+            channel_profile (str): Name of the channel profile defined inside
+            config yaml file.
 
+        Returns:
+            Path to tx file if success else None.
         """
         if 'fabric-bin/bin' not in os.environ['PATH']:
             executable_path = os.path.join(
-                os.path.dirname(__file__).rsplit('/', 2)[0], 'fabric-bin/bin')
+                os.path.dirname(__file__).rsplit('/',
+                                                 2)[0],
+                'fabric-bin/bin')
             os.environ['PATH'] += os.pathsep + executable_path
 
         # check if configtxgen is in PATH
@@ -690,65 +695,76 @@ class Client(object):
             os.getcwd() + "/" + cfg_path
         _logger.info("FABRIC_CFG_PATH set to {}".format(cfg_path))
         new_env = dict(os.environ, FABRIC_CFG_PATH=cfg_path)
-        output = subprocess.Popen(['configtxgen',
-                                   '-configPath', cfg_path,
-                                   '-profile', channel_profile,
-                                   '-channelID', channel_name,
-                                   '-outputCreateChannelTx', tx_path],
-                                  stdout=open(os.devnull, "w"),
-                                  stderr=subprocess.PIPE, env=new_env)
+        output = subprocess.Popen([
+            'configtxgen',
+            '-configPath',
+            cfg_path,
+            '-profile',
+            channel_profile,
+            '-channelID',
+            channel_name,
+            '-outputCreateChannelTx',
+            tx_path
+        ],
+                                  stdout=open(os.devnull,
+                                              "w"),
+                                  stderr=subprocess.PIPE,
+                                  env=new_env)
         err = output.communicate()[1]
         if output.returncode:
             _logger.error('Failed to generate transaction file', err)
             return None
         return tx_path
 
-    def chaincode_instantiate(self, requestor, channel_name, peer_names,
-                              args, cc_name, cc_version, timeout=10):
-        """
-            Instantiate installed chaincode to particular peer in
-            particular channel
+    def chaincode_instantiate(self,
+                              requestor,
+                              channel_name,
+                              peer_names,
+                              args,
+                              cc_name,
+                              cc_version,
+                              timeout=10):
+        """Instantiate installed chaincode to particular peer in
+           particular channel.
 
-        :param requestor: User role who issue the request
-        :param channel_name: the name of the channel to send tx proposal
-        :param peer_names: Names of the peers to install
-        :param args (list): arguments (keys and values) for initialization
-        :param cc_name: chaincode name
-        :param cc_version: chaincode version
-        :param timeout: Timeout to wait
-        :return: True or False
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            args (list): Arguments (keys and values) for initialization.
+            cc_name (str): Chaincode name.
+            cc_version (str): Chaincode version.
+            timeout (int): Timeout to wait.
+
+        Returns:
+            bool: The reutnr value. True for success, False otherwise.
         """
         peers = []
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        tran_prop_req_dep = create_tx_prop_req(
-            prop_type=CC_INSTANTIATE,
-            cc_type=CC_TYPE_GOLANG,
-            cc_name=cc_name,
-            cc_version=cc_version,
-            fcn='init',
-            args=args
-        )
+        tran_prop_req_dep = create_tx_prop_req(prop_type=CC_INSTANTIATE,
+                                               cc_type=CC_TYPE_GOLANG,
+                                               cc_name=cc_name,
+                                               cc_version=cc_version,
+                                               fcn='init',
+                                               args=args)
 
-        tx_context_dep = create_tx_context(
-            requestor,
-            ecies(),
-            tran_prop_req_dep
-        )
+        tx_context_dep = create_tx_context(requestor,
+                                           ecies(),
+                                           tran_prop_req_dep)
 
-        res = self.send_instantiate_proposal(
-            tx_context_dep, peers, channel_name)
+        res = self.send_instantiate_proposal(tx_context_dep,
+                                             peers,
+                                             channel_name)
 
-        tx_context = create_tx_context(requestor,
-                                       ecies(),
-                                       TXProposalRequest())
+        tx_context = create_tx_context(requestor, ecies(), TXProposalRequest())
         tran_req = utils.build_tx_req(res)
         responses = utils.send_transaction(self.orderers, tran_req, tx_context)
 
-        if not (tran_req.responses[0].response.status == 200
-                and responses[0].status == 200):
+        if not (tran_req.responses[0].response.status == 200 and
+                responses[0].status == 200):
             return False
 
         # Wait until chaincode is really instantiated
@@ -756,13 +772,11 @@ class Client(object):
         starttime = int(time.time())
         while int(time.time()) - starttime < timeout:
             try:
-                response = self.query_transaction(
-                    requestor=requestor,
-                    channel_name=channel_name,
-                    peer_names=peer_names,
-                    tx_id=tx_context_dep.tx_id,
-                    decode=False
-                )
+                response = self.query_transaction(requestor=requestor,
+                                                  channel_name=channel_name,
+                                                  peer_names=peer_names,
+                                                  tx_id=tx_context_dep.tx_id,
+                                                  decode=False)
 
                 if response.response.status == 200:
                     return True
@@ -773,56 +787,57 @@ class Client(object):
 
         return False
 
-    def chaincode_invoke(self, requestor, channel_name, peer_names, args,
-                         cc_name, cc_version, cc_type=CC_TYPE_GOLANG,
-                         fcn='invoke', timeout=10):
-        """
-        Invoke chaincode for ledger update
+    def chaincode_invoke(self,
+                         requestor,
+                         channel_name,
+                         peer_names,
+                         args,
+                         cc_name,
+                         cc_version,
+                         cc_type=CC_TYPE_GOLANG,
+                         fcn='invoke',
+                         timeout=10):
+        """Invoke chaincode for ledger update.
 
-        :param requestor: User role who issue the request
-        :param channel_name: the name of the channel to send tx proposal
-        :param peer_names: Names of the peers to install
-        :param args (list): arguments (keys and values) for initialization
-        :param cc_name: chaincode name
-        :param cc_version: chaincode version
-        :param cc_type: chaincode type language
-        :param fcn: chaincode function
-        :param timeout: Timeout to wait
-        :return: True or False
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            args (list): Arguments (keys and values) for initialization.
+            cc_name (str): Chaincode name.
+            cc_version (str): Chaincode version.
+            cc_type (str): Chaincode type language.
+            fcn (str): Chaincode function.
+            timeout (int): Timeout to wait.
+
+        Returns:
+            str: Query result of chaincode.
         """
         peers = []
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        tran_prop_req = create_tx_prop_req(
-            prop_type=CC_INVOKE,
-            cc_name=cc_name,
-            cc_version=cc_version,
-            cc_type=cc_type,
-            fcn=fcn,
-            args=args
-        )
+        tran_prop_req = create_tx_prop_req(prop_type=CC_INVOKE,
+                                           cc_name=cc_name,
+                                           cc_version=cc_version,
+                                           cc_type=cc_type,
+                                           fcn=fcn,
+                                           args=args)
 
-        tx_context = create_tx_context(
-            requestor,
-            ecies(),
-            tran_prop_req
-        )
+        tx_context = create_tx_context(requestor, ecies(), tran_prop_req)
 
-        res = self.get_channel(
-            channel_name).send_tx_proposal(tx_context, peers)
+        res = self.get_channel(channel_name).send_tx_proposal(
+            tx_context,
+            peers)
 
         tran_req = utils.build_tx_req(res)
 
-        tx_context_tx = create_tx_context(
-            requestor,
-            ecies(),
-            tran_req
-        )
+        tx_context_tx = create_tx_context(requestor, ecies(), tran_req)
 
-        responses = utils.send_transaction(
-            self.orderers, tran_req, tx_context_tx)
+        responses = utils.send_transaction(self.orderers,
+                                           tran_req,
+                                           tx_context_tx)
 
         res = tran_req.responses[0].response
         if not (res.status == 200 and responses[0].status == 200):
@@ -834,13 +849,11 @@ class Client(object):
         payload = None
         while int(time.time()) - starttime < timeout:
             try:
-                response = self.query_transaction(
-                    requestor=requestor,
-                    channel_name=channel_name,
-                    peer_names=peer_names,
-                    tx_id=tx_context.tx_id,
-                    decode=False
-                )
+                response = self.query_transaction(requestor=requestor,
+                                                  channel_name=channel_name,
+                                                  peer_names=peer_names,
+                                                  tx_id=tx_context.tx_id,
+                                                  decode=False)
 
                 if response.response.status == 200:
                     payload = tran_req.responses[0].response.payload
@@ -853,44 +866,48 @@ class Client(object):
         msg = 'Failed to invoke chaincode. Query check returned: %s'
         return msg % payload.message
 
-    def chaincode_query(self, requestor, channel_name, peer_names, args,
-                        cc_name, cc_version, cc_type=CC_TYPE_GOLANG,
+    def chaincode_query(self,
+                        requestor,
+                        channel_name,
+                        peer_names,
+                        args,
+                        cc_name,
+                        cc_version,
+                        cc_type=CC_TYPE_GOLANG,
                         fcn='query'):
-        """
-        Query chaincode
+        """Query chaincode.
 
-        :param requestor: User role who issue the request
-        :param channel_name: the name of the channel to send tx proposal
-        :param peer_names: Names of the peers to install
-        :param args (list): arguments (keys and values) for initialization
-        :param cc_name: chaincode name
-        :param cc_version: chaincode version
-        :param cc_type: chaincode type language
-        :param fcn: chaincode function
-        :return: True or False
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+            args (list): Arguments (keys and values) for initialization.
+            cc_name (str): Chaincode name.
+            cc_version (str): Chaincode version.
+            cc_type (str): Chaincode type language.
+            fcn (str): Chaincode function.
+
+        Returns:
+            str: Query result of chaincode.
         """
         peers = []
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        tran_prop_req = create_tx_prop_req(
-            prop_type=CC_QUERY,
-            cc_name=cc_name,
-            cc_version=cc_version,
-            cc_type=cc_type,
-            fcn=fcn,
-            args=args
-        )
+        tran_prop_req = create_tx_prop_req(prop_type=CC_QUERY,
+                                           cc_name=cc_name,
+                                           cc_version=cc_version,
+                                           cc_type=cc_type,
+                                           fcn=fcn,
+                                           args=args)
 
-        tx_context = create_tx_context(
-            requestor,
-            ecies(),
-            tran_prop_req
-        )
+        tx_context = create_tx_context(requestor, ecies(), tran_prop_req)
 
-        res = self.get_channel(
-            channel_name).send_tx_proposal(tx_context, peers)
+        res = self.get_channel(channel_name).send_tx_proposal(
+            tx_context,
+            peers)
 
         tran_req = utils.build_tx_req(res)
         res = tran_req.responses[0].response
@@ -900,26 +917,26 @@ class Client(object):
         return res.message
 
     def query_installed_chaincodes(self, requestor, peer_names, decode=True):
-        """
-        Queries installed chaincode, returns all chaincodes installed on a peer
+        """Queries installed chaincode, returns all chaincodes installed on a peer.
 
-        :param requestor: User role who issue the request
-        :param peer_names: Names of the peers to query
-        :param deocode: Decode the response payload
-        :return: A `ChaincodeQueryResponse` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `ChaincodeQueryResponse` or `ProposalResponse`.
         """
         peers = []
         for peer_name in peer_names:
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        request = create_tx_prop_req(
-            prop_type=CC_QUERY,
-            fcn='getinstalledchaincodes',
-            cc_name='lscc',
-            cc_type=CC_TYPE_GOLANG,
-            args=[]
-        )
+        request = create_tx_prop_req(prop_type=CC_QUERY,
+                                     fcn='getinstalledchaincodes',
+                                     cc_name='lscc',
+                                     cc_type=CC_TYPE_GOLANG,
+                                     args=[])
 
         tx_context = create_tx_context(requestor, ecies(), TXProposalRequest())
         tx_context.tx_prop_req = request
@@ -932,23 +949,27 @@ class Client(object):
                 query_trans.ParseFromString(responses[0][0].response.payload)
                 for cc in query_trans.chaincodes:
                     _logger.debug('cc name {}, version {}, path {}'.format(
-                        cc.name, cc.version, cc.path))
+                        cc.name,
+                        cc.version,
+                        cc.path))
                 return query_trans
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query installed chaincodes: {}", sys.exc_info()[0])
+            _logger.error("Failed to query installed chaincodes: {}",
+                          sys.exc_info()[0])
             raise
 
     def query_channels(self, requestor, peer_names, decode=True):
-        """
-        Queries channel name joined by a peer
+        """Queries channel name joined by a peer.
 
-        :param requestor: User role who issue the request
-        :param peer_names: Names of the peers to install
-        :param deocode: Decode the response payload
-        :return: A `ChannelQueryResponse` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `ChannelQueryResponse` or `ProposalResponse`.
         """
 
         peers = []
@@ -956,13 +977,11 @@ class Client(object):
             peer = self.get_peer(peer_name)
             peers.append(peer)
 
-        request = create_tx_prop_req(
-            prop_type=CC_QUERY,
-            fcn='GetChannels',
-            cc_name='cscc',
-            cc_type=CC_TYPE_GOLANG,
-            args=[]
-        )
+        request = create_tx_prop_req(prop_type=CC_QUERY,
+                                     fcn='GetChannels',
+                                     cc_name='cscc',
+                                     cc_type=CC_TYPE_GOLANG,
+                                     args=[])
 
         tx_context = create_tx_context(requestor, ecies(), TXProposalRequest())
         tx_context.tx_prop_req = request
@@ -974,26 +993,25 @@ class Client(object):
                 query_trans = query_pb2.ChannelQueryResponse()
                 query_trans.ParseFromString(responses[0][0].response.payload)
                 for ch in query_trans.channels:
-                    _logger.debug('channel id {}'.format(
-                        ch.channel_id))
+                    _logger.debug('channel id {}'.format(ch.channel_id))
                 return query_trans
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query channel: {}", sys.exc_info()[0])
+            _logger.error("Failed to query channel: {}", sys.exc_info()[0])
             raise
 
-    def query_info(self, requestor, channel_name,
-                   peer_names, decode=True):
-        """
-        Queries information of a channel
+    def query_info(self, requestor, channel_name, peer_names, decode=True):
+        """Queries information of a channel.
 
-        :param requestor: User role who issue the request
-        :param channel_name: Name of channel to query
-        :param peer_names: Names of the peers to install
-        :param deocode: Decode the response payload
-        :return: A `BlockchainInfo` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `BlockchainInfo` or `ProposalResponse`.
         """
 
         peers = []
@@ -1016,21 +1034,26 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query info: {}", sys.exc_info()[0])
+            _logger.error("Failed to query info: {}", sys.exc_info()[0])
             raise
 
-    def query_block_by_txid(self, requestor, channel_name,
-                            peer_names, tx_id, decode=True):
-        """
-        Queries block by tx id
+    def query_block_by_txid(self,
+                            requestor,
+                            channel_name,
+                            peer_names,
+                            tx_id,
+                            decode=True):
+        """Queries block by transaction id.
 
-        :param requestor: User role who issue the request
-        :param channel_name: Name of channel to query
-        :param peer_names: Names of the peers to install
-        :param tx_id: Transaction ID
-        :param deocode: Decode the response payload
-        :return: A `BlockDecoder` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            tx_id (str): Transaction ID.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `BlockDecoder` or `ProposalResponse`.
         """
 
         peers = []
@@ -1054,21 +1077,26 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query block: {}", sys.exc_info()[0])
+            _logger.error("Failed to query block: {}", sys.exc_info()[0])
             raise
 
-    def query_block_by_hash(self, requestor, channel_name,
-                            peer_names, block_hash, decode=True):
-        """
-        Queries block by hash
+    def query_block_by_hash(self,
+                            requestor,
+                            channel_name,
+                            peer_names,
+                            block_hash,
+                            decode=True):
+        """Queries block by hash.
 
-        :param requestor: User role who issue the request
-        :param channel_name: Name of channel to query
-        :param peer_names: Names of the peers to install
-        :param block_hash: Hash of a block
-        :param deocode: Decode the response payload
-        :return: A `BlockDecoder` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            block_hash (int): Hash of a block.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `BlockDecoder` or `ProposalResponse`.
         """
 
         peers = []
@@ -1092,21 +1120,26 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query block: {}", sys.exc_info()[0])
+            _logger.error("Failed to query block: {}", sys.exc_info()[0])
             raise
 
-    def query_block(self, requestor, channel_name,
-                    peer_names, block_number, decode=True):
-        """
-        Queries block by number
+    def query_block(self,
+                    requestor,
+                    channel_name,
+                    peer_names,
+                    block_number,
+                    decode=True):
+        """Queries block by number.
 
-        :param requestor: User role who issue the request
-        :param channel_name: name of channel to query
-        :param peer_names: Names of the peers to install
-        :param block_number: Number of a block
-        :param deocode: Decode the response payload
-        :return: A `BlockDecoder` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            block_number (int): Number of a block.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `BlockDecoder` or `ProposalResponse`.
         """
 
         peers = []
@@ -1130,21 +1163,27 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query block: {}", sys.exc_info()[0])
+            _logger.error("Failed to query block: {}", sys.exc_info()[0])
             raise
 
-    def query_transaction(self, requestor, channel_name,
-                          peer_names, tx_id, decode=True):
+    def query_transaction(self,
+                          requestor,
+                          channel_name,
+                          peer_names,
+                          tx_id,
+                          decode=True):
         """
         Queries block by number
 
-        :param requestor: User role who issue the request
-        :param channel_name: name of channel to query
-        :param peer_names: Names of the peers to install
-        :param tx_id: The id of the transaction
-        :param deocode: Decode the response payload
-        :return:  A `BlockDecoder` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            tx_id (str): The id of the transaction.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `BlockDecoder` or `ProposalResponse`.
         """
 
         peers = []
@@ -1168,20 +1207,24 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query block: {}", sys.exc_info()[0])
+            _logger.error("Failed to query block: {}", sys.exc_info()[0])
             raise
 
-    def query_instantiated_chaincodes(self, requestor, channel_name,
-                                      peer_names, decode=True):
-        """
-        Queries instantiated chaincode
+    def query_instantiated_chaincodes(self,
+                                      requestor,
+                                      channel_name,
+                                      peer_names,
+                                      decode=True):
+        """Queries instantiated chaincode.
 
-        :param requestor: User role who issue the request
-        :param channel_name: name of channel to query
-        :param peer_names: Names of the peers to query
-        :param deocode: Decode the response payload
-        :return: A `ChaincodeQueryResponse` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `ChaincodeQueryResponse` or `ProposalResponse`.
         """
         peers = []
         for peer_name in peer_names:
@@ -1199,26 +1242,32 @@ class Client(object):
                 query_trans.ParseFromString(responses[0][0].response.payload)
                 for cc in query_trans.chaincodes:
                     _logger.debug('cc name {}, version {}, path {}'.format(
-                        cc.name, cc.version, cc.path))
+                        cc.name,
+                        cc.version,
+                        cc.path))
                 return query_trans
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to query instantiated chaincodes: {}",
-                sys.exc_info()[0])
+            _logger.error("Failed to query instantiated chaincodes: {}",
+                          sys.exc_info()[0])
             raise
 
-    def get_channel_config(self, requestor, channel_name,
-                           peer_names, decode=True):
-        """
-        Get configuration block for the channel
+    def get_channel_config(self,
+                           requestor,
+                           channel_name,
+                           peer_names,
+                           decode=True):
+        """Get configuration block for the channel.
 
-        :param requestor: User role who issue the request
-        :param channel_name: name of channel to query
-        :param peer_names: Names of the peers to query
-        :param deocode: Decode the response payload
-        :return: A `ChaincodeQueryResponse` or `ProposalResponse`
+        Args:
+            requestor (object): User role who issue the request.
+            channel_name (str): Name of channel to query.
+            peer_names (list): Names of the peers to query.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            A `ChaincodeQueryResponse` or `ProposalResponse`.
         """
         peers = []
         for peer_name in peer_names:
@@ -1247,8 +1296,8 @@ class Client(object):
             return responses[0][0]
 
         except Exception:
-            _logger.error(
-                "Failed to get channel config block: {}", sys.exc_info()[0])
+            _logger.error("Failed to get channel config block: {}",
+                          sys.exc_info()[0])
             raise
 
     def extract_channel_config(config_envelope):
@@ -1260,15 +1309,15 @@ class Client(object):
 
         Once all the signatures have been collected, the 'ConfigUpdate' object
         and the signatures may be used on create_channel() or update_channel()
-        calls
+        calls.
 
         Args:
-            config_envelope (bytes): encoded bytes of the ConfigEnvelope
-            protobuf
+            config_envelope (bytes): Encoded bytes of the ConfigEnvelope
+            protobuf.
 
         Returns:
-            config_update (bytes): encoded bytes of ConfigUpdate protobuf,
-            ready to be signed
+            config_update (bytes): Encoded bytes of ConfigUpdate protobuf,
+            ready to be signed.
         """
         _logger.debug('extract_channel_config start')
 
@@ -1279,24 +1328,27 @@ class Client(object):
         configtx = configtx_pb2.ConfigUpdateEnvelope()
         configtx.ParseFromString(payload.data)
         config_update = configtx.ConfigUpdate
-
         return config_update.SerializeToString()
 
-    def query_peers(self, requestor, target_peer,
-                    crypto=ecies(), decode=True):
-        """Queries peers with discovery api
+    def query_peers(self, requestor, target_peer, crypto=ecies(), decode=True):
+        """Queries peers with discovery api.
 
-        :param requestor: User role who issue the request
-        :param target_peer: Name of the peers to send request
-        :param crypto: crypto method to sign the request
-        :param deocode: Decode the response payload
-        :return result: a nested dict of query result
+        Args:
+            requestor (object): User role who issue the request.
+            target_peer (str): Name of the peers to send request.
+            crypto: crypto method to sign the request.
+            deocode (bool): True for decoding the response payload.
+
+        Returns:
+            result (dict): A nested dict of query result.
         """
 
         dummy_channel = self.new_channel('discover-local')
 
-        response = dummy_channel._discovery(
-            requestor, target_peer, crypto, local=True)
+        response = dummy_channel._discovery(requestor,
+                                            target_peer,
+                                            crypto,
+                                            local=True)
 
         try:
             results = {}
@@ -1308,7 +1360,8 @@ class Client(object):
                     if hasattr(result, 'error'):
                         _logger.error(
                             "Channel {} received discovery error: {}".format(
-                                dummy_channel.name, result.error.content))
+                                dummy_channel.name,
+                                result.error.content))
                     if hasattr(result, 'members'):
                         results['local_peers'] =  \
                             self._process_discovery_membership_result(
@@ -1316,9 +1369,8 @@ class Client(object):
             return results
 
         except Exception:
-            _logger.error(
-                "Failed to query instantiated chaincodes: {}",
-                sys.exc_info()[0])
+            _logger.error("Failed to query instantiated chaincodes: {}",
+                          sys.exc_info()[0])
             raise
 
     def _process_discovery_membership_result(self, q_members):
@@ -1349,15 +1401,13 @@ class Client(object):
             # STATE
             if hasattr(q_peer, 'state_info'):
                 message_s = message_pb2.GossipMessage()
-                message_s.ParseFromString(
-                    q_peer.state_info.payload)
+                message_s.ParseFromString(q_peer.state_info.payload)
                 try:
                     peer['ledger_height'] = int(
                         message_s.state_info.properties.ledger_height)
                 except AttributeError as e:
                     peer['ledger_height'] = 0
-                    _logger.debug(
-                        'missing ledger_height: {}'.format(e))
+                    _logger.debug('missing ledger_height: {}'.format(e))
 
                 peer['chaincodes'] = []
                 for index in message_s.state_info.properties.chaincodes:

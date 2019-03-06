@@ -8,7 +8,6 @@ from test.integration.config import E2E_CONFIG
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
-# logging.basicConfig(level=logging.DEBUG)
 test_network = E2E_CONFIG['test-network']
 CC_PATH = 'github.com/example_cc'
 CC_NAME = 'example_cc'
@@ -23,15 +22,13 @@ class DiscoveryTest(BaseTestCase):
         peer_config = test_network['org1.example.com']['peers']['peer0']
         tls_cacerts = peer_config['tls_cacerts']
         opts = (('grpc.ssl_target_name_override',
-                 peer_config['server_hostname']),)
+                 peer_config['server_hostname']),
+               )
         endpoint = peer_config['grpc_request_endpoint']
 
         peer = create_peer(endpoint=endpoint,
                            tls_cacerts=tls_cacerts,
                            opts=opts)
-
-        # org1_admin = get_peer_org_user(org1, 'Admin',
-        #                                self.client.state_store)
 
         # Channel create
         response = self.client.channel_create('orderer.example.com',
@@ -48,19 +45,19 @@ class DiscoveryTest(BaseTestCase):
         response = self.client.channel_join(
             requestor=self.user,
             channel_name=self.channel_name,
-            peer_names=['peer0.' + org1, 'peer1.' + org1],
-            orderer_name='orderer.example.com'
-        )
+            peer_names=['peer0.' + org1,
+                        'peer1.' + org1],
+            orderer_name='orderer.example.com')
         self.assertTrue(response)
 
         # CC install
         response = self.client.chaincode_install(
             requestor=self.user,
-            peer_names=['peer0.' + org1, 'peer1.' + org1],
+            peer_names=['peer0.' + org1,
+                        'peer1.' + org1],
             cc_path=CC_PATH,
             cc_name=CC_NAME,
-            cc_version=CC_VERSION
-        )
+            cc_version=CC_VERSION)
         self.assertTrue(response)
 
         # CC instantiate
@@ -71,26 +68,15 @@ class DiscoveryTest(BaseTestCase):
             peer_names=['peer0.' + org1],
             args=args,
             cc_name=CC_NAME,
-            cc_version=CC_VERSION
-        )
+            cc_version=CC_VERSION)
         self.assertTrue(response)
 
         # Query instantiated cc
         response = self.client.query_instantiated_chaincodes(
             requestor=self.user,
             channel_name=self.channel_name,
-            peer_names=['peer0.' + org1, 'peer1.' + org1]
-        )
-        '''
-        chaincodes {
-        name: "example_cc"
-        version: "1.0"
-        path: "github.com/example_cc"
-        input: "<nil>"
-        escc: "escc"
-        vscc: "vscc"
-        }
-        '''
+            peer_names=['peer0.' + org1,
+                        'peer1.' + org1])
 
         # TEST: config
         # this one contain 3 queries
@@ -99,19 +85,23 @@ class DiscoveryTest(BaseTestCase):
             target=peer,
             crypto=ecies(),
             config=True,
-            interests=[{'chaincodes': [{'name': CC_NAME}]}]
-        )
+            interests=[{
+                'chaincodes': [{
+                    'name': CC_NAME
+                }]
+            }])
         self.assertEqual(
             results.results[0].config_result.msps['OrdererMSP'].name,
             'OrdererMSP')
         self.assertEqual(
             list(results.results[1].members.peers_by_org.keys())[0],
             'Org1MSP')
-        self.assertEqual(
-            results.results[2].cc_query_res.content[0].chaincode, CC_NAME)
+        self.assertEqual(results.results[2].cc_query_res.content[0].chaincode,
+                         CC_NAME)
 
         # TEST: query_peer
         results = self.client.query_peers(self.user, peer)
-        self.assertEqual(results['local_peers']['Org1MSP']['peers']
-                         [0]['endpoint'], 'peer0.org1.example.com:7051')
+        self.assertEqual(
+            results['local_peers']['Org1MSP']['peers'][0]['endpoint'],
+            'peer0.org1.example.com:7051')
         logger.info("DISCOVERY TEST: query peer successfully")
