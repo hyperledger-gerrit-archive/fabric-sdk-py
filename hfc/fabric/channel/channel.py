@@ -862,6 +862,13 @@ class Channel(object):
             local_peers = protocol_pb2.LocalPeerQuery()
             q.local_peers.CopyFrom(local_peers)
             _logger.info("DISCOVERY: adding local peers query")
+        else:
+            q = protocol_pb2.Query()
+            queries.append(q)
+            q.channel = self._name
+            peer_query = protocol_pb2.PeerMembershipQuery()
+            q.peer_query.CopyFrom(peer_query)
+            _logger.info("DISCOVERY: adding channel peers query")
 
         if config:
             q = protocol_pb2.Query()
@@ -871,13 +878,6 @@ class Channel(object):
             config_query = protocol_pb2.ConfigQuery()
             q.config_query.CopyFrom(config_query)
             _logger.info("DISCOVERY: adding config query")
-
-            q = protocol_pb2.Query()
-            queries.append(q)
-            q.channel = self._name
-            peer_query = protocol_pb2.PeerMembershipQuery()
-            q.peer_query.CopyFrom(peer_query)
-            _logger.info("DISCOVERY: adding channel peers query")
 
         if interests and len(interests) > 0:
             q = protocol_pb2.Query()
