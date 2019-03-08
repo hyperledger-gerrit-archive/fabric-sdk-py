@@ -31,9 +31,7 @@ from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest, \
     CC_INVOKE, CC_QUERY
 from hfc.protos.common import common_pb2, configtx_pb2, ledger_pb2
 from hfc.protos.peer import query_pb2
-from hfc.protos.msp import identities_pb2
-from hfc.protos.gossip import message_pb2
-from hfc.fabric.block_decoder import BlockDecoder
+from hfc.fabric.block_decoder import BlockDecoder, decode_fabric_peers_info
 from hfc.util import utils
 from hfc.util.crypto.crypto import Ecies, ecies
 from hfc.util.keyvaluestore import FileKeyValueStore
@@ -1282,8 +1280,8 @@ class Client(object):
 
         return config_update.SerializeToString()
 
-    def query_peers(self, requestor, target_peer,
-                    crypto=ecies(), decode=True):
+    def query_peers(self, requestor, target_peer, channel=None,
+                    local=True, decode=True):
         """Queries peers with discovery api
 
         :param requestor: User role who issue the request
@@ -1293,10 +1291,15 @@ class Client(object):
         :return result: a nested dict of query result
         """
 
-        dummy_channel = self.new_channel('discover-local')
+        if local:
+            dummy_channel = self.new_channel("discover-local")
+        else:
+            if channel is None:
+                raise Exception("Channel name must be provided if local is False")
+            dummy_channel = self.new_channel(channel)
 
         response = dummy_channel._discovery(
-            requestor, target_peer, crypto, local=True)
+            requestor, target_peer, requestor.crypto_suite, local=local)
 
         try:
             results = {}
@@ -1326,47 +1329,7 @@ class Client(object):
         if hasattr(q_members, 'peers_by_org'):
             for mspid in q_members.peers_by_org:
                 peers_by_org[mspid] = {}
-                peers_by_org[mspid]['peers'] = self._process_peers(
+                peers_by_org[mspid]['peers'] = decode_fabric_peers_info(
                     q_members.peers_by_org[mspid].peers)
 
         return peers_by_org
-
-    def _process_peers(self, q_peers):
-        peers = []
-        for q_peer in q_peers:
-            peer = {}
-
-            # IDENTITY
-            q_identity = identities_pb2.SerializedIdentity()
-            q_identity.ParseFromString(q_peer.identity)
-            peer['mspid'] = q_identity.mspid
-
-            # MEMBERSHIP
-            q_membership_msg = message_pb2.GossipMessage()
-            q_membership_msg.ParseFromString(q_peer.membership_info.payload)
-            peer['endpoint'] = q_membership_msg.alive_msg.membership.endpoint
-
-            # STATE
-            if hasattr(q_peer, 'state_info'):
-                message_s = message_pb2.GossipMessage()
-                message_s.ParseFromString(
-                    q_peer.state_info.payload)
-                try:
-                    peer['ledger_height'] = int(
-                        message_s.state_info.properties.ledger_height)
-                except AttributeError as e:
-                    peer['ledger_height'] = 0
-                    _logger.debug(
-                        'missing ledger_height: {}'.format(e))
-
-                peer['chaincodes'] = []
-                for index in message_s.state_info.properties.chaincodes:
-                    q_cc = message_s.info.properties.chaincodes[index]
-                    cc = {}
-                    cc['name'] = q_cc.name
-                    cc['version'] = q_cc.version
-                    peer['chaincodes'].append(cc)
-
-            peers.append(peer)
-
-        return sorted(peers, key=lambda k: k['endpoint'])

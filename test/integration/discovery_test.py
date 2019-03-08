@@ -101,11 +101,13 @@ class DiscoveryTest(BaseTestCase):
             config=True,
             interests=[{'chaincodes': [{'name': CC_NAME}]}]
         )
+
+        print(results.results[1].config_result.msps)
         self.assertEqual(
-            results.results[0].config_result.msps['OrdererMSP'].name,
+            results.results[1].config_result.msps['OrdererMSP'].name,
             'OrdererMSP')
         self.assertEqual(
-            list(results.results[1].members.peers_by_org.keys())[0],
+            list(results.results[0].members.peers_by_org.keys())[0],
             'Org1MSP')
         self.assertEqual(
             results.results[2].cc_query_res.content[0].chaincode, CC_NAME)
