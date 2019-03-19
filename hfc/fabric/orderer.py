@@ -93,7 +93,7 @@ class Orderer(object):
             return False
         return True
 
-    def get_genesis_block(self, tx_context, channel_name):
+    async def get_genesis_block(self, tx_context, channel_name):
         """ get the genesis block of the channel.
         Return: the genesis block in success or None in fail.
         """
@@ -115,15 +115,20 @@ class Orderer(object):
         seek_payload_bytes = create_seek_payload(seek_header, seek_info)
         sig = tx_context.sign(seek_payload_bytes)
         envelope = create_envelope(sig, seek_payload_bytes)
-        response = self.delivery(envelope)
+        stream = self.delivery(envelope)
 
-        if response[0].block is None or response[0].block == '':
-            _logger.error("fail to get genesis block")
-            return None
+        async for v in stream:
+            if v.block is None or v.block == '':
+                _logger.error("fail to get genesis block")
+                return None
 
-        _logger.info("get genesis block successfully, block=%s",
-                     response[0].block.header)
-        return response[0].block
+            _logger.info("get genesis block successfully, block=%s",
+                         v.block.header)
+            return v.block
+
+    # create artificial envelope stream
+    async def stream_envelope(self, envelope):
+        yield envelope
 
     def broadcast(self, envelope):
         """Send an broadcast envelope to orderer.
@@ -136,7 +141,7 @@ class Orderer(object):
         """
         _logger.debug("Send envelope={}".format(envelope))
 
-        return list(self._orderer_client.Broadcast(iter([envelope])))
+        return self._orderer_client.Broadcast(self.stream_envelope(envelope))
 
     def delivery(self, envelope, scheduler=None):
         """ Send an delivery envelop to orderer.
@@ -149,7 +154,7 @@ class Orderer(object):
         """
         _logger.debug("Send envelope={}".format(envelope))
 
-        return list(self._orderer_client.Deliver(iter([envelope])))
+        return self._orderer_client.Deliver(self.stream_envelope(envelope))
 
     def get_attrs(self):
         return ",".join("{}={}"

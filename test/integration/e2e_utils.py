@@ -4,6 +4,7 @@
 #
 """
 
+import logging
 from hfc.fabric.orderer import Orderer
 from hfc.fabric.transaction.tx_context import TXContext
 from hfc.fabric.transaction.tx_proposal_request import TXProposalRequest
@@ -12,6 +13,9 @@ from hfc.util import utils
 from test.integration.utils import get_orderer_org_user, get_peer_org_user
 from test.integration.config import E2E_CONFIG
 test_network = E2E_CONFIG['test-network']
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 def build_channel_request(client, channel_tx, channel_name):
@@ -83,7 +87,7 @@ def disconnect(all_ehs):
 
 # This should be deprecated, the code should be included into the client's
 # channel_join method
-def build_join_channel_req(org, channel, client):
+async def build_join_channel_req(org, channel, client):
     """
     For test, there is only one peer.
 
@@ -104,9 +108,11 @@ def build_join_channel_req(org, channel, client):
     # get the genesis block
     orderer_admin = client.get_user('orderer.example.com', 'Admin')
     tx_context = TXContext(orderer_admin, ecies(), tx_prop_req)
-    genesis_block = orderer.get_genesis_block(
+    res = await orderer.get_genesis_block(
         tx_context,
-        channel.name).SerializeToString()
+        channel.name)
+
+    genesis_block = res.SerializeToString()
 
     org_admin = client.get_user(org, 'Admin')
     tx_context = TXContext(org_admin, ecies(), tx_prop_req)
@@ -133,3 +139,11 @@ def build_join_channel_req(org, channel, client):
     }
 
     return request
+
+
+async def get_stream_result(stream):
+    res = []
+    async for v in stream:
+        logger.debug('Responses of send_transaction:\n {}'.format(v))
+        res.append(v)
+    return res
