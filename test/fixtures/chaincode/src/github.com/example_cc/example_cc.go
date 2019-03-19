@@ -137,7 +137,9 @@ func (t *SimpleChaincode) invoke(stub shim.ChaincodeStubInterface, args []string
 		return shim.Error(err.Error())
 	}
 
-	return shim.Success(nil)
+	payloadAsBytes := []byte(strconv.Itoa(Bval))
+	stub.SetEvent("invoked", payloadAsBytes)
+	return shim.Success(payloadAsBytes)
 }
 
 // Deletes an entity from state
@@ -182,6 +184,7 @@ func (t *SimpleChaincode) query(stub shim.ChaincodeStubInterface, args []string)
 
 	jsonResp := "{\"Name\":\"" + A + "\",\"Amount\":\"" + string(Avalbytes) + "\"}"
 	fmt.Printf("Query Response:%s\n", jsonResp)
+
 	return shim.Success(Avalbytes)
 }
 
