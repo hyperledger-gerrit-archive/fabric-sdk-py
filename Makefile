@@ -70,8 +70,8 @@ venv:
 	@echo "virtualenv can be installed by: pip3 install virtualenv"
 	if [ ! -d venv ]; then \
 		virtualenv -p python3 venv; \
-		pip install -r requirements.txt; \
-		pip install -r requirements-test.txt; \
+		pip3 install -r requirements.txt; \
+		pip3 install -r requirements-test.txt; \
 	fi
 	@echo "Active the virtual env: source venv/bin/activate"
 	@echo "Deactive when done: deactivate"
