@@ -46,7 +46,7 @@ class ClientTest(unittest.TestCase):
         no_chain = self.client.get_channel('test1')
         self.assertIsNone(no_chain)
 
-    def test_create_channel_missing_signatures(self):
+    async def test_create_channel_missing_signatures(self):
         request = {}
         request['config'] = 'config'
         request['channel_name'] = 'channel_name'
@@ -54,9 +54,9 @@ class ClientTest(unittest.TestCase):
         request['tx_id'] = 'tx_id'
         request['nonce'] = 'nonce'
         with self.assertRaises(ValueError):
-            self.client._create_channel(request)
+            await self.client._create_channel(request)
 
-    def test_create_channel_not_list_of_signatures(self):
+    async def test_create_channel_not_list_of_signatures(self):
         request = {}
         request['config'] = 'config'
         request['signatures'] = 'signatures'
@@ -65,9 +65,9 @@ class ClientTest(unittest.TestCase):
         request['tx_id'] = 'tx_id'
         request['nonce'] = 'nonce'
         with self.assertRaises(ValueError):
-            self.client._create_channel(request)
+            await self.client._create_channel(request)
 
-    def test_create_channel_missing_tx_id(self):
+    async def test_create_channel_missing_tx_id(self):
         request = {}
         request['config'] = 'config'
         request['channel_name'] = 'channel_name'
@@ -75,9 +75,9 @@ class ClientTest(unittest.TestCase):
         request['nonce'] = 'nonce'
 
         with self.assertRaises(ValueError):
-            self.client._create_channel(request)
+            await self.client._create_channel(request)
 
-    def test_create_channel_missing_orderer(self):
+    async def test_create_channel_missing_orderer(self):
         request = {}
         request['config'] = 'config'
         request['channel_name'] = 'channel_name'
@@ -85,9 +85,9 @@ class ClientTest(unittest.TestCase):
         request['nonce'] = 'nonce'
 
         with self.assertRaises(ValueError):
-            self.client._create_channel(request)
+            await self.client._create_channel(request)
 
-    def test_create_channel_missing_channel_name(self):
+    async def test_create_channel_missing_channel_name(self):
         request = {
             'config': 'config',
             'orderer': 'orderer',
@@ -96,7 +96,7 @@ class ClientTest(unittest.TestCase):
         }
 
         with self.assertRaises(ValueError):
-            self.client._create_channel(request)
+            await self.client._create_channel(request)
 
     def test_export_network_profile(self):
         network_info = {
