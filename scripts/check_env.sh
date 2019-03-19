@@ -23,14 +23,19 @@ echo
 docker-compose -v
 
 which tox
+which pip
+
+echo "===> Force Tox install for debug mode"
+pip install tox
 
 if [ $? -eq 0 ] ; then
-   echo "====> tox is already installed"
+   TOX_VERSION=`tox --version`
+   echo "====> tox is already installed ${TOX_VERSION}"
    echo
 else
    echo "====> install tox here"
    echo
-   pip install tox
+   pip3 install tox
 fi
 
 # pull fabric images
