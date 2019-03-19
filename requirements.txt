@@ -1,6 +1,8 @@
+aiogrpc >= 1.6
 cryptography >= 1.9
 grpcio >= 1.0.1
 hkdf >= 0.0.3
+ipython==7.4.0
 pycryptodomex >= 3.4.2
 pysha3 == 1.0b1
 requests >= 2.12.4
