@@ -11,7 +11,7 @@ check: clean
 
 # Tox related variables
 TOX = tox
-TOX_VENV_NAMES = pylint flake8 py30 py36
+TOX_VENV_NAMES = py30 py36
 # [tox.pylint, tox.flake8, tox.py30, tox.py36]
 TOX_VENVS = $(patsubst %, $(TOX).%, $(TOX_VENV_NAMES))
 
@@ -70,8 +70,8 @@ venv:
 	@echo "virtualenv can be installed by: pip3 install virtualenv"
 	if [ ! -d venv ]; then \
 		virtualenv -p python3 venv; \
-		pip install -r requirements.txt; \
-		pip install -r requirements-test.txt; \
+		pip3 install -r requirements.txt; \
+		pip3 install -r requirements-test.txt; \
 	fi
 	@echo "Active the virtual env: source venv/bin/activate"
 	@echo "Deactive when done: deactivate"
