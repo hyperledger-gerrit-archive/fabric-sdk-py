@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 
+import asyncio
 import logging
 from hfc.fabric.peer import create_peer
 from hfc.fabric.transaction.tx_context import create_tx_context
@@ -10,12 +11,11 @@ from hfc.fabric.transaction.tx_proposal_request import create_tx_prop_req, \
     CC_INVOKE, CC_TYPE_GOLANG, CC_INSTANTIATE, CC_INSTALL, TXProposalRequest
 from hfc.util.crypto.crypto import ecies
 from hfc.util.utils import build_tx_req, send_transaction
-from test.integration.utils import get_peer_org_user,\
+from test.integration.utils import get_peer_org_user, \
     BaseTestCase
 from test.integration.config import E2E_CONFIG
-from test.integration.e2e_utils import build_channel_request,\
-    build_join_channel_req
-
+from test.integration.e2e_utils import build_channel_request, \
+    build_join_channel_req, get_stream_result
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -27,8 +27,7 @@ CC_VERSION = '1.0'
 
 class ChaincodeInvokeTest(BaseTestCase):
 
-    def invoke_chaincode(self):
-
+    async def invoke_chaincode(self):
         self.channel = self.client.new_channel(self.channel_name)
         org1 = "org1.example.com"
         peer_config = test_network['org1.example.com']['peers']['peer0']
@@ -80,34 +79,48 @@ class ChaincodeInvokeTest(BaseTestCase):
         request = build_channel_request(self.client,
                                         self.channel_tx,
                                         self.channel_name)
-        self.client._create_channel(request)
+        await self.client._create_channel(request)
 
-        join_req = build_join_channel_req(org1, self.channel, self.client)
-        self.channel.join_channel(join_req)
+        join_req = await build_join_channel_req(org1, self.channel,
+                                                self.client)
+        await self.channel.join_channel(join_req)
 
-        self.client.send_install_proposal(tx_context_install, [self.org1_peer])
+        responses, proposal, header = self.client.send_install_proposal(
+            tx_context_install, [self.org1_peer])
+        await asyncio.gather(*responses)
 
-        res = self.channel.send_instantiate_proposal(tx_context_dep,
-                                                     [self.org1_peer])
+        responses, proposal, header = self.channel.send_instantiate_proposal(
+            tx_context_dep,
+            [self.org1_peer])
+        res = await asyncio.gather(*responses)
 
-        tran_req = build_tx_req(res)
-        send_transaction(self.channel.orderers, tran_req, tx_context)
+        tran_req = build_tx_req((res, proposal, header))
 
+        await get_stream_result(
+            send_transaction(self.channel.orderers, tran_req, tx_context))
         tx_context_tx = create_tx_context(self.org1_admin,
                                           crypto,
                                           TXProposalRequest())
-        res = self.channel.send_tx_proposal(tx_context, [self.org1_peer])
+        responses, p, h = self.channel.send_tx_proposal(tx_context,
+                                                        [self.org1_peer])
+        res = await asyncio.gather(*responses)
 
-        tran_req = build_tx_req(res)
+        tran_req = build_tx_req((res, p, h))
 
-        send_transaction(self.channel.orderers, tran_req, tx_context_tx)
+        await get_stream_result(
+            send_transaction(self.channel.orderers, tran_req, tx_context_tx))
 
     def test_query_instantiated_chaincodes_sucess(self):
+        loop = asyncio.get_event_loop()
 
-        self.invoke_chaincode()
+        loop.run_until_complete(self.invoke_chaincode())
         tx_context = create_tx_context(self.org1_admin,
                                        ecies(),
                                        TXProposalRequest())
-        responses = self.channel.query_instantiated_chaincodes(
+
+        responses, p, h = self.channel.query_instantiated_chaincodes(
             tx_context, [self.org1_peer])
-        self.assertEqual(responses[0][0].response.status, 200)
+
+        res = loop.run_until_complete(asyncio.gather(*responses))
+
+        self.assertEqual(res[0].response.status, 200)
