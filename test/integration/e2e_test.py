@@ -37,8 +37,8 @@ class E2eTest(BaseTestCase):
         response = self.client.channel_create('orderer.example.com',
                                               self.channel_name,
                                               self.user,
-                                              self.config_yaml,
-                                              self.channel_profile)
+                                              config_yaml=self.config_yaml,
+                                              channel_profile=self.channel_profile)
         self.assertTrue(response)
 
         logger.info("E2E: Channel creation done: name={}".format(
