@@ -53,7 +53,7 @@ image:
 # Generate the protobuf python files
 proto:
 	shopt -s globstar
-	python3 -m grpc.tools.protoc \
+	python3.6 -m grpc.tools.protoc \
 		-I./\
 		--python_out=./ \
 		--grpc_python_out=./ \
@@ -69,19 +69,19 @@ clean:
 venv:
 	@echo "virtualenv can be installed by: pip3 install virtualenv"
 	if [ ! -d venv ]; then \
-		virtualenv -p python3 venv; \
-		pip install -r requirements.txt; \
-		pip install -r requirements-test.txt; \
+		virtualenv -p python3.6 venv; \
+		pip3 install -r requirements.txt; \
+		pip3 install -r requirements-test.txt; \
 	fi
 	@echo "Active the virtual env: source venv/bin/activate"
 	@echo "Deactive when done: deactivate"
 
 # Install sdk to local python env
 install:
-	python3 setup.py install
+	python3.6 setup.py install
 
 # Auto-format to pep8
 format:
-	python3 -m autopep8 --in-place --recursive --exclude=./hfc/protos .
+	python3.6 -m autopep8 --in-place --recursive --exclude=./hfc/protos .
 
 .PHONY: check clean proto image install format test venv
