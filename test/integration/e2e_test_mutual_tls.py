@@ -89,8 +89,8 @@ class E2eTest(BaseTestCase):
             response = self.client.channel_join(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
-                orderer_name='orderer.example.com'
+                target_peers=['peer0.' + org, 'peer1.' + org],
+                target_orderer='orderer.example.com'
             )
             self.assertTrue(response)
             # Verify the ledger exists now in the peer node
@@ -119,7 +119,7 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.chaincode_install(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 cc_path=CC_PATH,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION
@@ -155,7 +155,7 @@ class E2eTest(BaseTestCase):
             response = self.client.chaincode_instantiate(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org],
+                target_peers=['peer0.' + org],
                 args=args,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION
@@ -180,7 +180,7 @@ class E2eTest(BaseTestCase):
             response = self.client.chaincode_invoke(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer1.' + org],
+                target_peers=['peer1.' + org],
                 args=args,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION,
@@ -205,7 +205,7 @@ class E2eTest(BaseTestCase):
             response = self.client.chaincode_query(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org],
+                target_peers=['peer0.' + org],
                 args=args,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION
@@ -227,7 +227,7 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_installed_chaincodes(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
             self.assertEqual(
                 response.chaincodes[0].name, CC_NAME, "Query failed")
@@ -251,7 +251,7 @@ class E2eTest(BaseTestCase):
             org_admin = self.client.get_user(org, "Admin")
             response = self.client.query_channels(
                 requestor=org_admin,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
             self.assertEqual(
                 response.channels[0].channel_id,
@@ -274,7 +274,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
             self.assertEqual(
                 response.height,
@@ -298,13 +298,13 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
 
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 block_hash=response.currentBlockHash
             )
 
@@ -315,7 +315,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_block_by_txid(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 tx_id=tx_id
             )
 
@@ -343,7 +343,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
 
             previous_block_hash = response.previousBlockHash
@@ -351,7 +351,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 block_hash=current_block_hash
             )
 
@@ -376,7 +376,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_block(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 block_number='0'
             )
             self.assertEqual(
@@ -401,13 +401,13 @@ class E2eTest(BaseTestCase):
             response = self.client.query_info(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
             )
 
             response = self.client.query_block_by_hash(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 block_hash=response.currentBlockHash
             )
 
@@ -418,7 +418,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_transaction(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org],
+                target_peers=['peer0.' + org, 'peer1.' + org],
                 tx_id=tx_id
             )
 
@@ -444,7 +444,7 @@ class E2eTest(BaseTestCase):
             response = self.client.query_instantiated_chaincodes(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org]
+                target_peers=['peer0.' + org, 'peer1.' + org]
             )
             self.assertEqual(
                 response.chaincodes[0].name, CC_NAME, "Query failed")
@@ -469,7 +469,7 @@ class E2eTest(BaseTestCase):
             response = self.client.get_channel_config(
                 requestor=org_admin,
                 channel_name=self.channel_name,
-                peer_names=['peer0.' + org, 'peer1.' + org]
+                target_peers=['peer0.' + org, 'peer1.' + org]
             )
             self.assertEqual(response.config.sequence,
                              1, "Get Config Failed")
