@@ -64,6 +64,13 @@ The following command will build the Docker image `hyperledger/fabric-sdk-py`.
 $ make image
 ```
 
+## Regenerating protos
+
+Make sure you have `grpcio-tools` installed (`pip install grpcio-tools`)
+```sh
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./hfc/protos/**/*.proto
+```
+
 ## Change Logs
 See [Change Log](CHANGELOG.md) for the commit logs. Run `make changelog` to update the changelog before new release.
 

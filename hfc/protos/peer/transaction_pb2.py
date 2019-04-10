@@ -13,7 +13,6 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 from hfc.protos.peer import proposal_response_pb2 as hfc_dot_protos_dot_peer_dot_proposal__response__pb2
 from hfc.protos.common import common_pb2 as hfc_dot_protos_dot_common_dot_common__pb2
 
@@ -23,9 +22,9 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='protos',
   syntax='proto3',
   serialized_options=_b('\n\"org.hyperledger.fabric.protos.peerB\022TransactionPackageZ)github.com/hyperledger/fabric/protos/peer'),
-  serialized_pb=_b('\n!hfc/protos/peer/transaction.proto\x12\x06protos\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\'hfc/protos/peer/proposal_response.proto\x1a\x1ehfc/protos/common/common.proto\"A\n\x11SignedTransaction\x12\x19\n\x11transaction_bytes\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"]\n\x14ProcessedTransaction\x12-\n\x13transactionEnvelope\x18\x01 \x01(\x0b\x32\x10.common.Envelope\x12\x16\n\x0evalidationCode\x18\x02 \x01(\x05\"9\n\x0bTransaction\x12*\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x19.protos.TransactionAction\"4\n\x11TransactionAction\x12\x0e\n\x06header\x18\x01 \x01(\x0c\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\"m\n\x16\x43haincodeActionPayload\x12\"\n\x1a\x63haincode_proposal_payload\x18\x01 \x01(\x0c\x12/\n\x06\x61\x63tion\x18\x02 \x01(\x0b\x32\x1f.protos.ChaincodeEndorsedAction\"g\n\x17\x43haincodeEndorsedAction\x12!\n\x19proposal_response_payload\x18\x01 \x01(\x0c\x12)\n\x0c\x65ndorsements\x18\x02 \x03(\x0b\x32\x13.protos.Endorsement*\x94\x05\n\x10TxValidationCode\x12\t\n\x05VALID\x10\x00\x12\x10\n\x0cNIL_ENVELOPE\x10\x01\x12\x0f\n\x0b\x42\x41\x44_PAYLOAD\x10\x02\x12\x15\n\x11\x42\x41\x44_COMMON_HEADER\x10\x03\x12\x19\n\x15\x42\x41\x44_CREATOR_SIGNATURE\x10\x04\x12 \n\x1cINVALID_ENDORSER_TRANSACTION\x10\x05\x12\x1e\n\x1aINVALID_CONFIG_TRANSACTION\x10\x06\x12\x1a\n\x16UNSUPPORTED_TX_PAYLOAD\x10\x07\x12\x15\n\x11\x42\x41\x44_PROPOSAL_TXID\x10\x08\x12\x12\n\x0e\x44UPLICATE_TXID\x10\t\x12\x1e\n\x1a\x45NDORSEMENT_POLICY_FAILURE\x10\n\x12\x16\n\x12MVCC_READ_CONFLICT\x10\x0b\x12\x19\n\x15PHANTOM_READ_CONFLICT\x10\x0c\x12\x13\n\x0fUNKNOWN_TX_TYPE\x10\r\x12\x1a\n\x16TARGET_CHAIN_NOT_FOUND\x10\x0e\x12\x14\n\x10MARSHAL_TX_ERROR\x10\x0f\x12\x10\n\x0cNIL_TXACTION\x10\x10\x12\x15\n\x11\x45XPIRED_CHAINCODE\x10\x11\x12\x1e\n\x1a\x43HAINCODE_VERSION_CONFLICT\x10\x12\x12\x18\n\x14\x42\x41\x44_HEADER_EXTENSION\x10\x13\x12\x16\n\x12\x42\x41\x44_CHANNEL_HEADER\x10\x14\x12\x18\n\x14\x42\x41\x44_RESPONSE_PAYLOAD\x10\x15\x12\r\n\tBAD_RWSET\x10\x16\x12\x14\n\x10ILLEGAL_WRITESET\x10\x17\x12\x14\n\x10INVALID_WRITESET\x10\x18\x12\x12\n\rNOT_VALIDATED\x10\xfe\x01\x12\x19\n\x14INVALID_OTHER_REASON\x10\xff\x01*(\n\x0cMetaDataKeys\x12\x18\n\x14VALIDATION_PARAMETER\x10\x00\x42\x63\n\"org.hyperledger.fabric.protos.peerB\x12TransactionPackageZ)github.com/hyperledger/fabric/protos/peerb\x06proto3')
+  serialized_pb=_b('\n!hfc/protos/peer/transaction.proto\x12\x06protos\x1a\'hfc/protos/peer/proposal_response.proto\x1a\x1ehfc/protos/common/common.proto\"A\n\x11SignedTransaction\x12\x19\n\x11transaction_bytes\x18\x01 \x01(\x0c\x12\x11\n\tsignature\x18\x02 \x01(\x0c\"]\n\x14ProcessedTransaction\x12-\n\x13transactionEnvelope\x18\x01 \x01(\x0b\x32\x10.common.Envelope\x12\x16\n\x0evalidationCode\x18\x02 \x01(\x05\"9\n\x0bTransaction\x12*\n\x07\x61\x63tions\x18\x01 \x03(\x0b\x32\x19.protos.TransactionAction\"4\n\x11TransactionAction\x12\x0e\n\x06header\x18\x01 \x01(\x0c\x12\x0f\n\x07payload\x18\x02 \x01(\x0c\"m\n\x16\x43haincodeActionPayload\x12\"\n\x1a\x63haincode_proposal_payload\x18\x01 \x01(\x0c\x12/\n\x06\x61\x63tion\x18\x02 \x01(\x0b\x32\x1f.protos.ChaincodeEndorsedAction\"g\n\x17\x43haincodeEndorsedAction\x12!\n\x19proposal_response_payload\x18\x01 \x01(\x0c\x12)\n\x0c\x65ndorsements\x18\x02 \x03(\x0b\x32\x13.protos.Endorsement*\x94\x05\n\x10TxValidationCode\x12\t\n\x05VALID\x10\x00\x12\x10\n\x0cNIL_ENVELOPE\x10\x01\x12\x0f\n\x0b\x42\x41\x44_PAYLOAD\x10\x02\x12\x15\n\x11\x42\x41\x44_COMMON_HEADER\x10\x03\x12\x19\n\x15\x42\x41\x44_CREATOR_SIGNATURE\x10\x04\x12 \n\x1cINVALID_ENDORSER_TRANSACTION\x10\x05\x12\x1e\n\x1aINVALID_CONFIG_TRANSACTION\x10\x06\x12\x1a\n\x16UNSUPPORTED_TX_PAYLOAD\x10\x07\x12\x15\n\x11\x42\x41\x44_PROPOSAL_TXID\x10\x08\x12\x12\n\x0e\x44UPLICATE_TXID\x10\t\x12\x1e\n\x1a\x45NDORSEMENT_POLICY_FAILURE\x10\n\x12\x16\n\x12MVCC_READ_CONFLICT\x10\x0b\x12\x19\n\x15PHANTOM_READ_CONFLICT\x10\x0c\x12\x13\n\x0fUNKNOWN_TX_TYPE\x10\r\x12\x1a\n\x16TARGET_CHAIN_NOT_FOUND\x10\x0e\x12\x14\n\x10MARSHAL_TX_ERROR\x10\x0f\x12\x10\n\x0cNIL_TXACTION\x10\x10\x12\x15\n\x11\x45XPIRED_CHAINCODE\x10\x11\x12\x1e\n\x1a\x43HAINCODE_VERSION_CONFLICT\x10\x12\x12\x18\n\x14\x42\x41\x44_HEADER_EXTENSION\x10\x13\x12\x16\n\x12\x42\x41\x44_CHANNEL_HEADER\x10\x14\x12\x18\n\x14\x42\x41\x44_RESPONSE_PAYLOAD\x10\x15\x12\r\n\tBAD_RWSET\x10\x16\x12\x14\n\x10ILLEGAL_WRITESET\x10\x17\x12\x14\n\x10INVALID_WRITESET\x10\x18\x12\x12\n\rNOT_VALIDATED\x10\xfe\x01\x12\x19\n\x14INVALID_OTHER_REASON\x10\xff\x01*(\n\x0cMetaDataKeys\x12\x18\n\x14VALIDATION_PARAMETER\x10\x00\x42\x63\n\"org.hyperledger.fabric.protos.peerB\x12TransactionPackageZ)github.com/hyperledger/fabric/protos/peerb\x06proto3')
   ,
-  dependencies=[google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,hfc_dot_protos_dot_peer_dot_proposal__response__pb2.DESCRIPTOR,hfc_dot_protos_dot_common_dot_common__pb2.DESCRIPTOR,])
+  dependencies=[hfc_dot_protos_dot_peer_dot_proposal__response__pb2.DESCRIPTOR,hfc_dot_protos_dot_common_dot_common__pb2.DESCRIPTOR,])
 
 _TXVALIDATIONCODE = _descriptor.EnumDescriptor(
   name='TxValidationCode',
@@ -144,8 +143,8 @@ _TXVALIDATIONCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=643,
-  serialized_end=1303,
+  serialized_start=610,
+  serialized_end=1270,
 )
 _sym_db.RegisterEnumDescriptor(_TXVALIDATIONCODE)
 
@@ -163,8 +162,8 @@ _METADATAKEYS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1305,
-  serialized_end=1345,
+  serialized_start=1272,
+  serialized_end=1312,
 )
 _sym_db.RegisterEnumDescriptor(_METADATAKEYS)
 
@@ -233,8 +232,8 @@ _SIGNEDTRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=151,
-  serialized_end=216,
+  serialized_start=118,
+  serialized_end=183,
 )
 
 
@@ -271,8 +270,8 @@ _PROCESSEDTRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=218,
-  serialized_end=311,
+  serialized_start=185,
+  serialized_end=278,
 )
 
 
@@ -302,8 +301,8 @@ _TRANSACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=313,
-  serialized_end=370,
+  serialized_start=280,
+  serialized_end=337,
 )
 
 
@@ -340,8 +339,8 @@ _TRANSACTIONACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=372,
-  serialized_end=424,
+  serialized_start=339,
+  serialized_end=391,
 )
 
 
@@ -378,8 +377,8 @@ _CHAINCODEACTIONPAYLOAD = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=426,
-  serialized_end=535,
+  serialized_start=393,
+  serialized_end=502,
 )
 
 
@@ -416,8 +415,8 @@ _CHAINCODEENDORSEDACTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=537,
-  serialized_end=640,
+  serialized_start=504,
+  serialized_end=607,
 )
 
 _PROCESSEDTRANSACTION.fields_by_name['transactionEnvelope'].message_type = hfc_dot_protos_dot_common_dot_common__pb2._ENVELOPE

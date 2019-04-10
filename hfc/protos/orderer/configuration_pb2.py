@@ -19,10 +19,44 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='orderer',
   syntax='proto3',
   serialized_options=_b('\n%org.hyperledger.fabric.protos.ordererZ,github.com/hyperledger/fabric/protos/orderer'),
-  serialized_pb=_b('\n&hfc/protos/orderer/configuration.proto\x12\x07orderer\"/\n\rConsensusType\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08metadata\x18\x02 \x01(\x0c\"_\n\tBatchSize\x12\x19\n\x11max_message_count\x18\x01 \x01(\r\x12\x1a\n\x12\x61\x62solute_max_bytes\x18\x02 \x01(\r\x12\x1b\n\x13preferred_max_bytes\x18\x03 \x01(\r\"\x1f\n\x0c\x42\x61tchTimeout\x12\x0f\n\x07timeout\x18\x01 \x01(\t\"\x1f\n\x0cKafkaBrokers\x12\x0f\n\x07\x62rokers\x18\x01 \x03(\t\"(\n\x13\x43hannelRestrictions\x12\x11\n\tmax_count\x18\x01 \x01(\x04\x42U\n%org.hyperledger.fabric.protos.ordererZ,github.com/hyperledger/fabric/protos/ordererb\x06proto3')
+  serialized_pb=_b('\n&hfc/protos/orderer/configuration.proto\x12\x07orderer\"\x87\x02\n\rConsensusType\x12\x0c\n\x04type\x18\x01 \x01(\t\x12\x10\n\x08metadata\x18\x02 \x01(\x0c\x12>\n\x0fmigration_state\x18\x03 \x01(\x0e\x32%.orderer.ConsensusType.MigrationState\x12\x19\n\x11migration_context\x18\x04 \x01(\x04\"{\n\x0eMigrationState\x12\x12\n\x0eMIG_STATE_NONE\x10\x00\x12\x13\n\x0fMIG_STATE_START\x10\x01\x12\x14\n\x10MIG_STATE_COMMIT\x10\x02\x12\x13\n\x0fMIG_STATE_ABORT\x10\x03\x12\x15\n\x11MIG_STATE_CONTEXT\x10\x04\"_\n\tBatchSize\x12\x19\n\x11max_message_count\x18\x01 \x01(\r\x12\x1a\n\x12\x61\x62solute_max_bytes\x18\x02 \x01(\r\x12\x1b\n\x13preferred_max_bytes\x18\x03 \x01(\r\"\x1f\n\x0c\x42\x61tchTimeout\x12\x0f\n\x07timeout\x18\x01 \x01(\t\"\x1f\n\x0cKafkaBrokers\x12\x0f\n\x07\x62rokers\x18\x01 \x03(\t\"(\n\x13\x43hannelRestrictions\x12\x11\n\tmax_count\x18\x01 \x01(\x04\x42U\n%org.hyperledger.fabric.protos.ordererZ,github.com/hyperledger/fabric/protos/ordererb\x06proto3')
 )
 
 
+
+_CONSENSUSTYPE_MIGRATIONSTATE = _descriptor.EnumDescriptor(
+  name='MigrationState',
+  full_name='orderer.ConsensusType.MigrationState',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='MIG_STATE_NONE', index=0, number=0,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MIG_STATE_START', index=1, number=1,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MIG_STATE_COMMIT', index=2, number=2,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MIG_STATE_ABORT', index=3, number=3,
+      serialized_options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='MIG_STATE_CONTEXT', index=4, number=4,
+      serialized_options=None,
+      type=None),
+  ],
+  containing_type=None,
+  serialized_options=None,
+  serialized_start=192,
+  serialized_end=315,
+)
+_sym_db.RegisterEnumDescriptor(_CONSENSUSTYPE_MIGRATIONSTATE)
 
 
 _CONSENSUSTYPE = _descriptor.Descriptor(
@@ -46,11 +80,26 @@ _CONSENSUSTYPE = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='migration_state', full_name='orderer.ConsensusType.migration_state', index=2,
+      number=3, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='migration_context', full_name='orderer.ConsensusType.migration_context', index=3,
+      number=4, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
   nested_types=[],
   enum_types=[
+    _CONSENSUSTYPE_MIGRATIONSTATE,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -58,8 +107,8 @@ _CONSENSUSTYPE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=51,
-  serialized_end=98,
+  serialized_start=52,
+  serialized_end=315,
 )
 
 
@@ -103,8 +152,8 @@ _BATCHSIZE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=100,
-  serialized_end=195,
+  serialized_start=317,
+  serialized_end=412,
 )
 
 
@@ -134,8 +183,8 @@ _BATCHTIMEOUT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=197,
-  serialized_end=228,
+  serialized_start=414,
+  serialized_end=445,
 )
 
 
@@ -165,8 +214,8 @@ _KAFKABROKERS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=230,
-  serialized_end=261,
+  serialized_start=447,
+  serialized_end=478,
 )
 
 
@@ -196,10 +245,12 @@ _CHANNELRESTRICTIONS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=263,
-  serialized_end=303,
+  serialized_start=480,
+  serialized_end=520,
 )
 
+_CONSENSUSTYPE.fields_by_name['migration_state'].enum_type = _CONSENSUSTYPE_MIGRATIONSTATE
+_CONSENSUSTYPE_MIGRATIONSTATE.containing_type = _CONSENSUSTYPE
 DESCRIPTOR.message_types_by_name['ConsensusType'] = _CONSENSUSTYPE
 DESCRIPTOR.message_types_by_name['BatchSize'] = _BATCHSIZE
 DESCRIPTOR.message_types_by_name['BatchTimeout'] = _BATCHTIMEOUT

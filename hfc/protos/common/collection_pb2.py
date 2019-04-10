@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='common',
   syntax='proto3',
   serialized_options=_b('\n$org.hyperledger.fabric.protos.commonZ+github.com/hyperledger/fabric/protos/common'),
-  serialized_pb=_b('\n\"hfc/protos/common/collection.proto\x12\x06\x63ommon\x1a hfc/protos/common/policies.proto\"C\n\x17\x43ollectionConfigPackage\x12(\n\x06\x63onfig\x18\x01 \x03(\x0b\x32\x18.common.CollectionConfig\"a\n\x10\x43ollectionConfig\x12\x42\n\x18static_collection_config\x18\x01 \x01(\x0b\x32\x1e.common.StaticCollectionConfigH\x00\x42\t\n\x07payload\"\xcc\x01\n\x16StaticCollectionConfig\x12\x0c\n\x04name\x18\x01 \x01(\t\x12:\n\x12member_orgs_policy\x18\x02 \x01(\x0b\x32\x1e.common.CollectionPolicyConfig\x12\x1b\n\x13required_peer_count\x18\x03 \x01(\x05\x12\x1a\n\x12maximum_peer_count\x18\x04 \x01(\x05\x12\x15\n\rblock_to_live\x18\x05 \x01(\x04\x12\x18\n\x10member_only_read\x18\x06 \x01(\x08\"`\n\x16\x43ollectionPolicyConfig\x12;\n\x10signature_policy\x18\x01 \x01(\x0b\x32\x1f.common.SignaturePolicyEnvelopeH\x00\x42\t\n\x07payload\"[\n\x12\x43ollectionCriteria\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x11\n\tnamespace\x18\x04 \x01(\tBS\n$org.hyperledger.fabric.protos.commonZ+github.com/hyperledger/fabric/protos/commonb\x06proto3')
+  serialized_pb=_b('\n\"hfc/protos/common/collection.proto\x12\x06\x63ommon\x1a hfc/protos/common/policies.proto\"C\n\x17\x43ollectionConfigPackage\x12(\n\x06\x63onfig\x18\x01 \x03(\x0b\x32\x18.common.CollectionConfig\"a\n\x10\x43ollectionConfig\x12\x42\n\x18static_collection_config\x18\x01 \x01(\x0b\x32\x1e.common.StaticCollectionConfigH\x00\x42\t\n\x07payload\"\xe7\x01\n\x16StaticCollectionConfig\x12\x0c\n\x04name\x18\x01 \x01(\t\x12:\n\x12member_orgs_policy\x18\x02 \x01(\x0b\x32\x1e.common.CollectionPolicyConfig\x12\x1b\n\x13required_peer_count\x18\x03 \x01(\x05\x12\x1a\n\x12maximum_peer_count\x18\x04 \x01(\x05\x12\x15\n\rblock_to_live\x18\x05 \x01(\x04\x12\x18\n\x10member_only_read\x18\x06 \x01(\x08\x12\x19\n\x11member_only_write\x18\x07 \x01(\x08\"`\n\x16\x43ollectionPolicyConfig\x12;\n\x10signature_policy\x18\x01 \x01(\x0b\x32\x1f.common.SignaturePolicyEnvelopeH\x00\x42\t\n\x07payload\"[\n\x12\x43ollectionCriteria\x12\x0f\n\x07\x63hannel\x18\x01 \x01(\t\x12\r\n\x05tx_id\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x11\n\tnamespace\x18\x04 \x01(\tBS\n$org.hyperledger.fabric.protos.commonZ+github.com/hyperledger/fabric/protos/commonb\x06proto3')
   ,
   dependencies=[hfc_dot_protos_dot_common_dot_policies__pb2.DESCRIPTOR,])
 
@@ -141,6 +141,13 @@ _STATICCOLLECTIONCONFIG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='member_only_write', full_name='common.StaticCollectionConfig.member_only_write', index=6,
+      number=7, type=8, cpp_type=7, label=1,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -154,7 +161,7 @@ _STATICCOLLECTIONCONFIG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=249,
-  serialized_end=453,
+  serialized_end=480,
 )
 
 
@@ -187,8 +194,8 @@ _COLLECTIONPOLICYCONFIG = _descriptor.Descriptor(
       name='payload', full_name='common.CollectionPolicyConfig.payload',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=455,
-  serialized_end=551,
+  serialized_start=482,
+  serialized_end=578,
 )
 
 
@@ -239,8 +246,8 @@ _COLLECTIONCRITERIA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=553,
-  serialized_end=644,
+  serialized_start=580,
+  serialized_end=671,
 )
 
 _COLLECTIONCONFIGPACKAGE.fields_by_name['config'].message_type = _COLLECTIONCONFIG

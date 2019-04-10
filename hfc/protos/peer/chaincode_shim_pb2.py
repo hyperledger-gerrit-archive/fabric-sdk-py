@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='protos',
   syntax='proto3',
   serialized_options=_b('\n\"org.hyperledger.fabric.protos.peerZ)github.com/hyperledger/fabric/protos/peer'),
-  serialized_pb=_b('\n$hfc/protos/peer/chaincode_shim.proto\x12\x06protos\x1a%hfc/protos/peer/chaincode_event.proto\x1a\x1ehfc/protos/peer/proposal.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xf6\x04\n\x10\x43haincodeMessage\x12+\n\x04type\x18\x01 \x01(\x0e\x32\x1d.protos.ChaincodeMessage.Type\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x12\x0c\n\x04txid\x18\x04 \x01(\t\x12(\n\x08proposal\x18\x05 \x01(\x0b\x32\x16.protos.SignedProposal\x12/\n\x0f\x63haincode_event\x18\x06 \x01(\x0b\x32\x16.protos.ChaincodeEvent\x12\x12\n\nchannel_id\x18\x07 \x01(\t\"\xf7\x02\n\x04Type\x12\r\n\tUNDEFINED\x10\x00\x12\x0c\n\x08REGISTER\x10\x01\x12\x0e\n\nREGISTERED\x10\x02\x12\x08\n\x04INIT\x10\x03\x12\t\n\x05READY\x10\x04\x12\x0f\n\x0bTRANSACTION\x10\x05\x12\r\n\tCOMPLETED\x10\x06\x12\t\n\x05\x45RROR\x10\x07\x12\r\n\tGET_STATE\x10\x08\x12\r\n\tPUT_STATE\x10\t\x12\r\n\tDEL_STATE\x10\n\x12\x14\n\x10INVOKE_CHAINCODE\x10\x0b\x12\x0c\n\x08RESPONSE\x10\r\x12\x16\n\x12GET_STATE_BY_RANGE\x10\x0e\x12\x14\n\x10GET_QUERY_RESULT\x10\x0f\x12\x14\n\x10QUERY_STATE_NEXT\x10\x10\x12\x15\n\x11QUERY_STATE_CLOSE\x10\x11\x12\r\n\tKEEPALIVE\x10\x12\x12\x17\n\x13GET_HISTORY_FOR_KEY\x10\x13\x12\x16\n\x12GET_STATE_METADATA\x10\x14\x12\x16\n\x12PUT_STATE_METADATA\x10\x15\"+\n\x08GetState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\"3\n\x10GetStateMetadata\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\":\n\x08PutState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\x12\n\ncollection\x18\x03 \x01(\t\"\\\n\x10PutStateMetadata\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\'\n\x08metadata\x18\x04 \x01(\x0b\x32\x15.protos.StateMetadata\"+\n\x08\x44\x65lState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\"Y\n\x0fGetStateByRange\x12\x10\n\x08startKey\x18\x01 \x01(\t\x12\x0e\n\x06\x65ndKey\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x10\n\x08metadata\x18\x04 \x01(\x0c\"E\n\x0eGetQueryResult\x12\r\n\x05query\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\x12\x10\n\x08metadata\x18\x03 \x01(\x0c\"3\n\rQueryMetadata\x12\x10\n\x08pageSize\x18\x01 \x01(\x05\x12\x10\n\x08\x62ookmark\x18\x02 \x01(\t\"\x1f\n\x10GetHistoryForKey\x12\x0b\n\x03key\x18\x01 \x01(\t\"\x1c\n\x0eQueryStateNext\x12\n\n\x02id\x18\x01 \x01(\t\"\x1d\n\x0fQueryStateClose\x12\n\n\x02id\x18\x01 \x01(\t\"\'\n\x10QueryResultBytes\x12\x13\n\x0bresultBytes\x18\x01 \x01(\x0c\"j\n\rQueryResponse\x12)\n\x07results\x18\x01 \x03(\x0b\x32\x18.protos.QueryResultBytes\x12\x10\n\x08has_more\x18\x02 \x01(\x08\x12\n\n\x02id\x18\x03 \x01(\t\x12\x10\n\x08metadata\x18\x04 \x01(\x0c\"H\n\x15QueryResponseMetadata\x12\x1d\n\x15\x66\x65tched_records_count\x18\x01 \x01(\x05\x12\x10\n\x08\x62ookmark\x18\x02 \x01(\t\"/\n\rStateMetadata\x12\x0f\n\x07metakey\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\"=\n\x13StateMetadataResult\x12&\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x15.protos.StateMetadata2X\n\x10\x43haincodeSupport\x12\x44\n\x08Register\x12\x18.protos.ChaincodeMessage\x1a\x18.protos.ChaincodeMessage\"\x00(\x01\x30\x01\x42O\n\"org.hyperledger.fabric.protos.peerZ)github.com/hyperledger/fabric/protos/peerb\x06proto3')
+  serialized_pb=_b('\n$hfc/protos/peer/chaincode_shim.proto\x12\x06protos\x1a%hfc/protos/peer/chaincode_event.proto\x1a\x1ehfc/protos/peer/proposal.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x91\x05\n\x10\x43haincodeMessage\x12+\n\x04type\x18\x01 \x01(\x0e\x32\x1d.protos.ChaincodeMessage.Type\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12\x0f\n\x07payload\x18\x03 \x01(\x0c\x12\x0c\n\x04txid\x18\x04 \x01(\t\x12(\n\x08proposal\x18\x05 \x01(\x0b\x32\x16.protos.SignedProposal\x12/\n\x0f\x63haincode_event\x18\x06 \x01(\x0b\x32\x16.protos.ChaincodeEvent\x12\x12\n\nchannel_id\x18\x07 \x01(\t\"\x92\x03\n\x04Type\x12\r\n\tUNDEFINED\x10\x00\x12\x0c\n\x08REGISTER\x10\x01\x12\x0e\n\nREGISTERED\x10\x02\x12\x08\n\x04INIT\x10\x03\x12\t\n\x05READY\x10\x04\x12\x0f\n\x0bTRANSACTION\x10\x05\x12\r\n\tCOMPLETED\x10\x06\x12\t\n\x05\x45RROR\x10\x07\x12\r\n\tGET_STATE\x10\x08\x12\r\n\tPUT_STATE\x10\t\x12\r\n\tDEL_STATE\x10\n\x12\x14\n\x10INVOKE_CHAINCODE\x10\x0b\x12\x0c\n\x08RESPONSE\x10\r\x12\x16\n\x12GET_STATE_BY_RANGE\x10\x0e\x12\x14\n\x10GET_QUERY_RESULT\x10\x0f\x12\x14\n\x10QUERY_STATE_NEXT\x10\x10\x12\x15\n\x11QUERY_STATE_CLOSE\x10\x11\x12\r\n\tKEEPALIVE\x10\x12\x12\x17\n\x13GET_HISTORY_FOR_KEY\x10\x13\x12\x16\n\x12GET_STATE_METADATA\x10\x14\x12\x16\n\x12PUT_STATE_METADATA\x10\x15\x12\x19\n\x15GET_PRIVATE_DATA_HASH\x10\x16\"+\n\x08GetState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\"3\n\x10GetStateMetadata\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\":\n\x08PutState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\x12\x12\n\ncollection\x18\x03 \x01(\t\"\\\n\x10PutStateMetadata\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\'\n\x08metadata\x18\x04 \x01(\x0b\x32\x15.protos.StateMetadata\"+\n\x08\x44\x65lState\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\"Y\n\x0fGetStateByRange\x12\x10\n\x08startKey\x18\x01 \x01(\t\x12\x0e\n\x06\x65ndKey\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x10\n\x08metadata\x18\x04 \x01(\x0c\"E\n\x0eGetQueryResult\x12\r\n\x05query\x18\x01 \x01(\t\x12\x12\n\ncollection\x18\x02 \x01(\t\x12\x10\n\x08metadata\x18\x03 \x01(\x0c\"3\n\rQueryMetadata\x12\x10\n\x08pageSize\x18\x01 \x01(\x05\x12\x10\n\x08\x62ookmark\x18\x02 \x01(\t\"\x1f\n\x10GetHistoryForKey\x12\x0b\n\x03key\x18\x01 \x01(\t\"\x1c\n\x0eQueryStateNext\x12\n\n\x02id\x18\x01 \x01(\t\"\x1d\n\x0fQueryStateClose\x12\n\n\x02id\x18\x01 \x01(\t\"\'\n\x10QueryResultBytes\x12\x13\n\x0bresultBytes\x18\x01 \x01(\x0c\"j\n\rQueryResponse\x12)\n\x07results\x18\x01 \x03(\x0b\x32\x18.protos.QueryResultBytes\x12\x10\n\x08has_more\x18\x02 \x01(\x08\x12\n\n\x02id\x18\x03 \x01(\t\x12\x10\n\x08metadata\x18\x04 \x01(\x0c\"H\n\x15QueryResponseMetadata\x12\x1d\n\x15\x66\x65tched_records_count\x18\x01 \x01(\x05\x12\x10\n\x08\x62ookmark\x18\x02 \x01(\t\"/\n\rStateMetadata\x12\x0f\n\x07metakey\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\x0c\"=\n\x13StateMetadataResult\x12&\n\x07\x65ntries\x18\x01 \x03(\x0b\x32\x15.protos.StateMetadata2X\n\x10\x43haincodeSupport\x12\x44\n\x08Register\x12\x18.protos.ChaincodeMessage\x1a\x18.protos.ChaincodeMessage\"\x00(\x01\x30\x01\x42O\n\"org.hyperledger.fabric.protos.peerZ)github.com/hyperledger/fabric/protos/peerb\x06proto3')
   ,
   dependencies=[hfc_dot_protos_dot_peer_dot_chaincode__event__pb2.DESCRIPTOR,hfc_dot_protos_dot_peer_dot_proposal__pb2.DESCRIPTOR,google_dot_protobuf_dot_timestamp__pb2.DESCRIPTOR,])
 
@@ -118,11 +118,15 @@ _CHAINCODEMESSAGE_TYPE = _descriptor.EnumDescriptor(
       name='PUT_STATE_METADATA', index=20, number=21,
       serialized_options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='GET_PRIVATE_DATA_HASH', index=21, number=22,
+      serialized_options=None,
+      type=None),
   ],
   containing_type=None,
   serialized_options=None,
   serialized_start=408,
-  serialized_end=783,
+  serialized_end=810,
 )
 _sym_db.RegisterEnumDescriptor(_CHAINCODEMESSAGE_TYPE)
 
@@ -197,7 +201,7 @@ _CHAINCODEMESSAGE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=153,
-  serialized_end=783,
+  serialized_end=810,
 )
 
 
@@ -234,8 +238,8 @@ _GETSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=785,
-  serialized_end=828,
+  serialized_start=812,
+  serialized_end=855,
 )
 
 
@@ -272,8 +276,8 @@ _GETSTATEMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=830,
-  serialized_end=881,
+  serialized_start=857,
+  serialized_end=908,
 )
 
 
@@ -317,8 +321,8 @@ _PUTSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=883,
-  serialized_end=941,
+  serialized_start=910,
+  serialized_end=968,
 )
 
 
@@ -362,8 +366,8 @@ _PUTSTATEMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=943,
-  serialized_end=1035,
+  serialized_start=970,
+  serialized_end=1062,
 )
 
 
@@ -400,8 +404,8 @@ _DELSTATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1037,
-  serialized_end=1080,
+  serialized_start=1064,
+  serialized_end=1107,
 )
 
 
@@ -452,8 +456,8 @@ _GETSTATEBYRANGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1082,
-  serialized_end=1171,
+  serialized_start=1109,
+  serialized_end=1198,
 )
 
 
@@ -497,8 +501,8 @@ _GETQUERYRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1173,
-  serialized_end=1242,
+  serialized_start=1200,
+  serialized_end=1269,
 )
 
 
@@ -535,8 +539,8 @@ _QUERYMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1244,
-  serialized_end=1295,
+  serialized_start=1271,
+  serialized_end=1322,
 )
 
 
@@ -566,8 +570,8 @@ _GETHISTORYFORKEY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1297,
-  serialized_end=1328,
+  serialized_start=1324,
+  serialized_end=1355,
 )
 
 
@@ -597,8 +601,8 @@ _QUERYSTATENEXT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1330,
-  serialized_end=1358,
+  serialized_start=1357,
+  serialized_end=1385,
 )
 
 
@@ -628,8 +632,8 @@ _QUERYSTATECLOSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1360,
-  serialized_end=1389,
+  serialized_start=1387,
+  serialized_end=1416,
 )
 
 
@@ -659,8 +663,8 @@ _QUERYRESULTBYTES = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1391,
-  serialized_end=1430,
+  serialized_start=1418,
+  serialized_end=1457,
 )
 
 
@@ -711,8 +715,8 @@ _QUERYRESPONSE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1432,
-  serialized_end=1538,
+  serialized_start=1459,
+  serialized_end=1565,
 )
 
 
@@ -749,8 +753,8 @@ _QUERYRESPONSEMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1540,
-  serialized_end=1612,
+  serialized_start=1567,
+  serialized_end=1639,
 )
 
 
@@ -787,8 +791,8 @@ _STATEMETADATA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1614,
-  serialized_end=1661,
+  serialized_start=1641,
+  serialized_end=1688,
 )
 
 
@@ -818,8 +822,8 @@ _STATEMETADATARESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1663,
-  serialized_end=1724,
+  serialized_start=1690,
+  serialized_end=1751,
 )
 
 _CHAINCODEMESSAGE.fields_by_name['type'].enum_type = _CHAINCODEMESSAGE_TYPE
@@ -977,8 +981,8 @@ _CHAINCODESUPPORT = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=1726,
-  serialized_end=1814,
+  serialized_start=1753,
+  serialized_end=1841,
   methods=[
   _descriptor.MethodDescriptor(
     name='Register',
