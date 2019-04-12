@@ -1,0 +1,9 @@
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+2: Baohua Yang <yangbaohua@gmail.com>
+Code-Review+1: Guillaume Cisco <guillaumecisco@gmail.com>
+Code-Review+2: Wang Dong <xdragon007@gmail.com>
+Submitted-by: Dixing Xu <dixingxu@gmail.com>
+Submitted-at: Fri, 12 Apr 2019 12:56:48 +0000
+Reviewed-on: https://gerrit.hyperledger.org/r/30863
+Project: fabric-sdk-py
+Branch: refs/heads/master
