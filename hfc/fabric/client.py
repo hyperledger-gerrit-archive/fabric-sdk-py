@@ -1130,18 +1130,16 @@ class Client(object):
                 channel_event_hub = channel.newChannelEventHub(target_peer,
                                                                requestor)
 
+                stream = channel_event_hub.connect()
+                event_stream.append(stream)
                 # use chaincode event
                 if cc_pattern is not None:
-                    stream = channel_event_hub.connect()
                     reg_id = channel_event_hub.registerChaincodeEvent(
-                        cc_name, cc_pattern)
-                    event_stream.append(stream)
+                        cc_name, cc_pattern, unregister=True)
                     channelEventsHubs[reg_id] = channel_event_hub
                 # use transaction event
                 else:
-                    stream = channel_event_hub.connect()
                     txid = channel_event_hub.registerTxEvent(tx_context.tx_id)
-                    event_stream.append(stream)
                     channelEventsHubs[txid] = channel_event_hub
 
             try:
@@ -1223,7 +1221,7 @@ class Client(object):
         if all([x.response.status == 200 for x in tran_req.responses]):
             return res[0].response.payload.decode('utf-8')
 
-        return res.response.message
+        return res[0].response.message
 
     async def query_installed_chaincodes(self, requestor, peers, decode=True):
         """
