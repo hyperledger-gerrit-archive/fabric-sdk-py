@@ -45,12 +45,6 @@ IMG_TAG=1.4.0
 echo "=====> Pulling fabric Images"
 dockerFabricPull ${FABRIC_TAG}
 
-IMG=hyperledger/fabric-baseimage:$BASEIMAGE_RELEASE
-[ -z "$(docker images -q ${IMG} 2> /dev/null)" ] && docker pull ${IMG}
-
-IMG=hyperledger/fabric-baseos:$BASEIMAGE_RELEASE
-[ -z "$(docker images -q ${IMG} 2> /dev/null)" ] && docker pull ${IMG}
-
 if ! which configtxgen
 then
     if  [ ! -e fabric-bin/bin/configtxgen ];
