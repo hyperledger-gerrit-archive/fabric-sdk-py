@@ -2,3 +2,4 @@
 #
 ef1fe8d82339cf63038bbcf163cc2539eabce3c5                                             	GitHub Replication
 ldap:cn=hyperledger-gerrit-fabric-sdk-py-committers,ou=Groups,dc=freestandards,dc=org	ldap/hyperledger-gerrit-fabric-sdk-py-committers
+ldap:cn=lf-gerrit-transfer,ou=Groups,dc=freestandards,dc=org                         	ldap/lf-gerrit-transfer
