@@ -1,0 +1,9 @@
+Code-Review+1: Kelvin Moutet <kelvin.moutet@owkin.com>
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+2: Dixing Xu <dixingxu@gmail.com>
+Code-Review+2: Baohua Yang <yangbaohua@gmail.com>
+Submitted-by: Baohua Yang <yangbaohua@gmail.com>
+Submitted-at: Thu, 13 Jun 2019 13:05:20 +0000
+Reviewed-on: https://gerrit.hyperledger.org/r/c/fabric-sdk-py/+/31885
+Project: fabric-sdk-py
+Branch: refs/heads/master
