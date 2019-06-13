@@ -180,13 +180,15 @@ response = loop.run_until_complete(cli.channel_create(
 print(response == True)
 
 # Join Peers into Channel, the response should be true if succeed
+orderer_admin = cli.get_user(org_name='orderer.example.com', name='Admin')
 responses = loop.run_until_complete(cli.channel_join(
                requestor=org1_admin,
                channel_name='businesschannel',
                peers=['peer0.org1.example.com',
                       'peer1.org1.example.com'],
 
-               orderer='orderer.example.com'
+               orderer='orderer.example.com',
+               orderer_admin=orderer_admin
                ))
 print(len(responses) == 2)
 
@@ -200,14 +202,32 @@ responses = loop.run_until_complete(cli.channel_join(
                channel_name='businesschannel',
                peers=['peer0.org2.example.com',
                       'peer1.org2.example.com'],
-               orderer='orderer.example.com'
+               orderer='orderer.example.com',
+               orderer_admin=orderer_admin
                ))
 print(len(responses) == 2)
 ```
 
 ### 2.2 Update the Channel Configuration
 
-TBD. [Help on this](https://jira.hyperledger.org/browse/FABP-199).
+```python
+import asyncio
+from hfc.fabric import Client
+
+loop = asyncio.get_event_loop()
+
+cli = Client(net_profile="test/fixtures/network.json")
+org1_admin = cli.get_user(org_name='org1.example.com', name='Admin')
+
+config_tx_file = './configtx.yaml'
+
+orderer_admin = cli.get_user(org_name='orderer.example.com', name='Admin')
+loop.run_until_complete(cli.channel_update(
+        orderer='orderer.example.com',
+        channel_name='businesschannel',
+        requestor=orderer_admin,
+        config_tx=config_tx_file))
+```
 
 ## 3. Operate Chaincodes with Fabric Network
 
@@ -244,6 +264,18 @@ responses = loop.run_until_complete(cli.chaincode_install(
 
 # Instantiate Chaincode in Channel, the response should be true if succeed
 args = ['a', '200', 'b', '300']
+
+# policy, see https://hyperledger-fabric.readthedocs.io/en/release-1.4/endorsement-policies.html
+policy = {
+    'identities': [
+        {'role': {'name': 'member', 'mspId': 'Org1MSP'}},
+    ],
+    'policy': {
+        '1-of': [
+            {'signed-by': 0},
+        ]
+    }
+}
 response = loop.run_until_complete(cli.chaincode_instantiate(
                requestor=org1_admin,
                channel_name='businesschannel',
@@ -251,7 +283,8 @@ response = loop.run_until_complete(cli.chaincode_instantiate(
                args=args,
                cc_name='example_cc',
                cc_version='v1.0',
-               wait_for_event=True # for being sure chaincode is instantiated
+               cc_endorsement_policy=policy, # optional, but recommended
+               wait_for_event=True # optional, for being sure chaincode is instantiated
                ))
 
 # Invoke a chaincode
@@ -277,6 +310,31 @@ response = loop.run_until_complete(cli.chaincode_query(
                args=args,
                cc_name='example_cc'
                ))
+
+# Upgrade a chaincode
+# policy, see https://hyperledger-fabric.readthedocs.io/en/release-1.4/endorsement-policies.html
+policy = {
+    'identities': [
+        {'role': {'name': 'member', 'mspId': 'Org1MSP'}},
+        {'role': {'name': 'admin', 'mspId': 'Org1MSP'}},
+    ],
+    'policy': {
+        '1-of': [
+            {'signed-by': 0}, {'signed-by': 1},
+        ]
+    }
+}
+response = loop.run_until_complete(cli.chaincode_upgrade(
+               requestor=org1_admin,
+               channel_name='businesschannel',
+               peers=['peer0.org1.example.com'],
+               args=args,
+               cc_name='example_cc',
+               cc_version='v1.0',
+               cc_endorsement_policy=policy, # optional, but recommended
+               wait_for_event=True # optional, for being sure chaincode is instantiated
+               ))               
+
 ```
 
 ## 4. Query Informations
@@ -446,8 +504,8 @@ org1_admin = cli.get_user('org1.example.com', 'Admin')
 # Get config from local channel discovery
 response = loop.run_until_complete(cli.query_peers(
                requestor=org1_admin,
-               peers=['peer0.org1.example.com'],
-               channel_name='businesschannel',
+               peer='peer0.org1.example.com',
+               channel='businesschannel',
                local=True,
                decode=True
                ))
@@ -455,8 +513,8 @@ response = loop.run_until_complete(cli.query_peers(
 # Get config from channel discovery over the network
 response = loop.run_until_complete(cli.query_peers(
                requestor=org1_admin,
-               peers=['peer0.org1.example.com'],
-               channel_name='businesschannel',
+               peer='peer0.org1.example.com',
+               channel='businesschannel',
                local=False,
                decode=True
                ))
