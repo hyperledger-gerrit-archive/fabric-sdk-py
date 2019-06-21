@@ -1,0 +1,10 @@
+Code-Review+2: Guillaume Cisco <guillaumecisco@gmail.com>
+Verified+1: Guillaume Cisco <guillaumecisco@gmail.com>
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+1: Kelvin Moutet <kelvin.moutet@owkin.com>
+Code-Review+2: Baohua Yang <yangbaohua@gmail.com>
+Submitted-by: Baohua Yang <yangbaohua@gmail.com>
+Submitted-at: Fri, 21 Jun 2019 12:24:05 +0000
+Reviewed-on: https://gerrit.hyperledger.org/r/c/fabric-sdk-py/+/32018
+Project: fabric-sdk-py
+Branch: refs/heads/master
