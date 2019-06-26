@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import asyncio
+import time
 
 import docker
 import logging
@@ -88,18 +89,21 @@ class E2eTest(BaseTestCase):
     async def chaincode_install(self):
         """
         Test installing an example chaincode to peer
-
-        :return:
         """
         logger.info("E2E: Chaincode install start")
         cc = f'/var/hyperledger/production/chaincodes/{CC_NAME}.{CC_VERSION}'
 
         channel = self.client.get_channel(self.channel_name)
         # create packaged chaincode before for having same id
-        code_package = channel._package_chaincode(CC_PATH, CC_TYPE_GOLANG)
+        # uncomment for testing
+        #code_package = channel._package_chaincode(CC_PATH, CC_TYPE_GOLANG)
 
         orgs = ["org1.example.com", "org2.example.com"]
         for org in orgs:
+
+            # simulate possible different chaincode archive based on timestamp
+            time.sleep(2)
+
             org_admin = self.client.get_user(org, "Admin")
             responses = await self.client.chaincode_install(
                 requestor=org_admin,
@@ -107,7 +111,7 @@ class E2eTest(BaseTestCase):
                 cc_path=CC_PATH,
                 cc_name=CC_NAME,
                 cc_version=CC_VERSION,
-                packaged_cc=code_package
+                #packaged_cc=code_package
             )
             self.assertTrue(responses)
             # Verify the cc pack exists now in the peer node
