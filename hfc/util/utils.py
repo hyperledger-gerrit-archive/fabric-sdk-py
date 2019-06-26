@@ -19,6 +19,7 @@ import random
 import os
 import tarfile
 import io
+import time
 
 from google.protobuf.message import DecodeError
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -433,7 +434,34 @@ def send_install_proposal(tx_context, peers):
     return responses, proposal, header
 
 
-def package_chaincode(cc_path, cc_type):
+class zeroTarInfo(tarfile.TarInfo):
+    # https://jira.hyperledger.org/browse/FAB-7065
+    # ?page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment
+    # -tabpanel&showAll=true
+    def __init__(self, name=""):
+        super(zeroTarInfo, self).__init__(name)
+
+        self.uid = self.gid = 500
+        self.mode = 100644
+        self.mtime = 0
+        self.pax_headers = {
+            'atime': 0,
+            'ctime': 0,
+        }
+
+
+# http://www.onicos.com/staff/iz/formats/gzip.html
+# https://github.com/python/cpython/blob/master/Lib/tarfile.py#L420
+class zeroTimeContextManager(object):
+    def __enter__(self):
+        self.real_time = time.time
+        time.time = lambda: 0
+
+    def __exit__(self, type, value, traceback):
+        time.time = self.real_time
+
+
+def package_chaincode(cc_path, cc_type=CC_TYPE_GOLANG):
     """ Package all chaincode env into a tar.gz file
     Args:
         cc_path: path to the chaincode
@@ -457,17 +485,24 @@ def package_chaincode(cc_path, cc_type):
         if not os.listdir(proj_path):
             raise ValueError("No chaincode file found!")
 
-        with io.BytesIO() as temp:
-            with tarfile.open(fileobj=temp, mode='w|gz') as code_writer:
-                for dir_path, _, file_names in os.walk(proj_path):
-                    for filename in file_names:
-                        file_path = os.path.join(dir_path, filename)
-                        _logger.debug("The file path {}".format(file_path))
-                        code_writer.add(
-                            file_path,
-                            arcname=os.path.relpath(file_path, go_path))
-            temp.seek(0)
-            code_content = temp.read()
+        tar_stream = io.BytesIO()
+        with zeroTimeContextManager():
+            dist = tarfile.open(fileobj=tar_stream,
+                                mode='w|gz', tarinfo=zeroTarInfo)
+            for dir_path, _, file_names in os.walk(proj_path):
+                for filename in file_names:
+                    file_path = os.path.join(dir_path, filename)
+
+                    with open(file_path, mode='rb') as f:
+                        file_data = f.read()
+                        real_path = os.path.relpath(file_path, go_path)
+                        tarinfo = zeroTarInfo(real_path)
+                        dist.addfile(tarinfo, io.BytesIO(file_data))
+
+            dist.close()
+            tar_stream.seek(0)
+            code_content = tar_stream.read()
+
         if code_content:
             return code_content
         else:
