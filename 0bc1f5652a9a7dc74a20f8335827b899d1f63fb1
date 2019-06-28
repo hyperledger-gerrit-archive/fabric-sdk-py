@@ -1,0 +1,7 @@
+Verified+1: Hyperledger Jobbuilder <jobbuilder@jenkins.hyperledger.org>
+Code-Review+2: Dixing Xu <dixingxu@gmail.com>
+Submitted-by: Dixing Xu <dixingxu@gmail.com>
+Submitted-at: Fri, 28 Jun 2019 10:24:10 +0000
+Reviewed-on: https://gerrit.hyperledger.org/r/c/fabric-sdk-py/+/32122
+Project: fabric-sdk-py
+Branch: refs/heads/master
