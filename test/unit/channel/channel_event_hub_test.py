@@ -69,7 +69,7 @@ class ChannelEventHubTest(BaseTestCase):
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.connect(start='foo')
-        self.assertEqual('start value must be: last_seen, oldest, latest or'
+        self.assertEqual('start value must be: last_seen, oldest, newest or'
                          ' an integer',
                          str(e.exception))
 
