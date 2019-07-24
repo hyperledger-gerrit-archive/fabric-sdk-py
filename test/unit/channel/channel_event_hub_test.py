@@ -9,7 +9,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import unittest
 
 from test.integration.utils import BaseTestCase
@@ -44,7 +43,7 @@ class ChannelEventHubTest(BaseTestCase):
         channel_event_hub = self.channel.newChannelEventHub(self.peer,
                                                             self.org_admin)
 
-        channel_event_hub.connect(start=0)
+        channel_event_hub.connect(start=0, stop='newest')
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.registerBlockEvent(start=0)
