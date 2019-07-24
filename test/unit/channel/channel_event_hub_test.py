@@ -9,16 +9,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import unittest
+from hfc.fabric.client import Client
 
 from test.integration.utils import BaseTestCase
 
 
-class ChannelEventHubTest(BaseTestCase):
+class ChannelEventHubTest(unittest.TestCase):
 
     def setUp(self):
         super(ChannelEventHubTest, self).setUp()
+        self.client = Client('test/fixtures/network.json')
+        self.channel_name = "businesschannel"  # default application channel
         self.channel = self.client.new_channel(self.channel_name)
         self.blocks = []
         self.org = 'org1.example.com'
@@ -44,7 +46,7 @@ class ChannelEventHubTest(BaseTestCase):
         channel_event_hub = self.channel.newChannelEventHub(self.peer,
                                                             self.org_admin)
 
-        channel_event_hub.connect(start=0)
+        channel_event_hub.connect(start=0, stop='newest')
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.registerBlockEvent(start=0)
@@ -61,8 +63,8 @@ class ChannelEventHubTest(BaseTestCase):
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.registerBlockEvent(start=0)
-        self.assertEqual('This ChannelEventHub is not open to event'
-                         ' listener registrations',
+        self.assertEqual('Only one event registration is allowed when'
+                         ' start/stop block are used.',
                          str(e.exception))
 
     def test_start_bad_connect(self):
