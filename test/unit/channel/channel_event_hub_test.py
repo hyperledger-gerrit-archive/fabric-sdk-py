@@ -9,7 +9,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import asyncio
 import unittest
 
 from test.integration.utils import BaseTestCase
@@ -24,6 +24,8 @@ class ChannelEventHubTest(BaseTestCase):
         self.org = 'org1.example.com'
         self.peer = self.client.get_peer('peer0.' + self.org)
         self.org_admin = self.client.get_user(self.org, 'Admin')
+
+        self.loop = asyncio.get_event_loop()
 
     def onEvent(self, block):
         self.blocks.append(block)
@@ -44,14 +46,16 @@ class ChannelEventHubTest(BaseTestCase):
         channel_event_hub = self.channel.newChannelEventHub(self.peer,
                                                             self.org_admin)
 
-        channel_event_hub.connect(start=0)
+        channel_event_hub.connect(start=0, stop='newest')
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.registerBlockEvent(start=0)
+
+        channel_event_hub.disconnect()
         self.assertEqual('The registration with a start/stop block must be'
                          ' done before calling connect()', str(e.exception))
 
-    def test_registred_before(self):
+    def test_registered_before(self):
         channel_event_hub = self.channel.newChannelEventHub(self.peer,
                                                             self.org_admin)
 
@@ -69,7 +73,7 @@ class ChannelEventHubTest(BaseTestCase):
 
         with self.assertRaises(Exception) as e:
             channel_event_hub.connect(start='foo')
-        self.assertEqual('start value must be: last_seen, oldest, latest or'
+        self.assertEqual('start value must be: last_seen, oldest, newest or'
                          ' an integer',
                          str(e.exception))
 
