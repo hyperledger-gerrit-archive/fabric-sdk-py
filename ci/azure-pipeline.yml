@@ -1,0 +1,26 @@
+# Copyright the Hyperledger Fabric contributors. All rights reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+name: $(SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.rrr)
+trigger:
+  branches:
+    include:
+      - master
+
+variables:
+  branch: $[ coalesce(variables['system.PullRequest.TargetBranch'], variables['build.SourceBranchName']) ]
+
+pool:
+  vmImage: ubuntu-16.04
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.6'
+  - script: sudo apt-get update && sudo apt-get install -y make
+    displayName: Install Make
+  - script: pip install virtualenv
+    displayName: Install VirtualEnv
+  - script: make check
+    displayName: Run Checks
